@@ -19,117 +19,117 @@ using namespace dammIds::pspmt;
 
 
 namespace dammIds{
-    namespace pspmt{      
-      const int D_RAW1=0;
-      const int D_RAW2=1;
-      const int D_RAW3=2;
-      const int D_RAW4=3;
-      const int D_RAWD=4;
-      const int D_SUM=5;
-      const int DD_POS1_RAW=6;
-      const int DD_POS2_RAW=7;
-      const int DD_POS1=8;
-      const int DD_POS2=9;
+    namespace pspmt{   // the offset is 1900   
+		const int D_RAW1=0;
+		const int D_RAW2=1;
+		const int D_RAW3=2;
+		const int D_RAW4=3;
+		const int D_RAWD=4;
+		const int D_SUM=5;
+		const int DD_POS1_RAW=6;
+		const int DD_POS2_RAW=7;
+		const int DD_POS1=8; // 1908
+		const int DD_POS2=9;
       
-      const int D_ENERGY_TRACE1=10;
-      const int D_ENERGY_TRACE2=11;
-      const int D_ENERGY_TRACE3=12;
-      const int D_ENERGY_TRACE4=13;
-      const int D_ENERGY_TRACED=14;
-      const int D_ENERGY_TRACESUM=15;
-      const int DD_POS1_RAW_TRACE=16;
-      const int DD_POS2_RAW_TRACE=17;
-      const int DD_POS1_TRACE=18;
-      const int DD_POS2_TRACE=19;
+		const int D_ENERGY_TRACE1=10;
+		const int D_ENERGY_TRACE2=11;
+		const int D_ENERGY_TRACE3=12;
+		const int D_ENERGY_TRACE4=13;
+		const int D_ENERGY_TRACED=14;
+		const int D_ENERGY_TRACESUM=15;
+		const int DD_POS1_RAW_TRACE=16;
+		const int DD_POS2_RAW_TRACE=17;
+		const int DD_POS1_TRACE=18;
+		const int DD_POS2_TRACE=19;
       
-      const int D_QDC_TRACE1 = 20;
-      const int D_QDC_TRACE2 = 21;
-      const int D_QDC_TRACE3 = 22;
-      const int D_QDC_TRACE4 = 23;
-      const int D_QDC_TRACED = 24;
-      const int D_ENERGY_QDCSUM = 25;
-      const int DD_POS1_RAW_QDC = 26;
-      const int DD_POS1_QDC     = 27;
-      const int DD_DIRCAL1      = 28;
+		const int D_QDC_TRACE1 = 20;
+		const int D_QDC_TRACE2 = 21;
+		const int D_QDC_TRACE3 = 22;
+		const int D_QDC_TRACE4 = 23;
+		const int D_QDC_TRACED = 24;
+		const int D_ENERGY_QDCSUM = 25;
+		const int DD_POS1_RAW_QDC = 26;
+		const int DD_POS1_QDC     = 27;
+		const int DD_DIRCAL1      = 28;
 
-      const int DD_P1D_CHANNEL=30;
-      const int DD_P1D_TRACE=31;
-      const int DD_P1D_QDC=32;
-      const int DD_P1D_QDCSUM=33;
+		const int DD_P1D_CHANNEL=30;
+		const int DD_P1D_TRACE=31;
+		const int DD_P1D_QDC=32;
+		const int DD_P1D_QDCSUM=33;
       
-      const int DD_P1D_IMPLANT_CHE=35;
-      const int DD_P1D_DECAY_CHE=36;
-      const int DD_P1D_IMPLANT_QDC=37;
-      const int DD_P1D_DECAY_QDC=38;
+		const int DD_P1D_IMPLANT_CHE=35;
+		const int DD_P1D_DECAY_CHE=36; // 1936
+		const int DD_P1D_IMPLANT_QDC=37;
+		const int DD_P1D_DECAY_QDC=38;
 
-      const int DD_MAP_IMPLANT=39;
-      const int DD_MAP_DECAY=40;
+		const int DD_MAP_IMPLANT=39;
+		const int DD_MAP_DECAY=40;
         
-      const int DD_MAP_IMPLANT_CHE=41;
-      const int DD_MAP_DECAY_CHE=42;
+		const int DD_MAP_IMPLANT_CHE=41;
+		const int DD_MAP_DECAY_CHE=42;
 
-      const int DD_TRACEMAX_P1D=43;
-      const int DD_TRACEMAXCAL_P1D=44;
-      const int DD_TRMAX_QDC=45;
+		const int DD_TRACEMAX_P1D=43;
+		const int DD_TRACEMAXCAL_P1D=44;
+		const int DD_TRMAX_QDC=45;
       
-      // decay time granx plot, 50 to 60 occupied
+		// decay time granx plot, 50 to 60 occupied
       
-      const int DD_ENERGY_DECAY_TIME_GRANX=50;
-      const int DD_ENERGY_DECAY_TIME_GRANX_TRACEE=60;
+		const int DD_ENERGY_DECAY_TIME_GRANX=50;
+		const int DD_ENERGY_DECAY_TIME_GRANX_TRACEE=60;
 
-      const int DD_P1D_DECAY_TIME0=70;
-      const int DD_P1D_DECAY_TIME1=71;
-      const int DD_P1D_DECAY_TIME2=72;
-      const int DD_P1D_DECAY_TIME3=73;
-      const int DD_P1D_DECAY_TIME4=74;
-      const int DD_P1D_DECAY_TIME5=75;
-      const int DD_TRACE_E_QDC=76;
-      const int DD_SINGLE_TRACE=77;
-      const int DD_DOUBLE_TRACE=78;
+		const int DD_P1D_DECAY_TIME0=70;
+		const int DD_P1D_DECAY_TIME1=71;
+		const int DD_P1D_DECAY_TIME2=72;
+		const int DD_P1D_DECAY_TIME3=73;
+		const int DD_P1D_DECAY_TIME4=74;
+		const int DD_P1D_DECAY_TIME5=75;
+		const int DD_TRACE_E_QDC=76;
+		const int DD_SINGLE_TRACE=77;
+		const int DD_DOUBLE_TRACE=78;
 
-      const int DD_TRACE_POS=79;
-      const int DD_TRACE_DYNODE=80;
+		const int DD_TRACE_POS=79;
+		const int DD_TRACE_DYNODE=80;
       
-      const int DD_TRACE_IMPLANT_ALL=81;
-      const int DD_TRACE_IMPLANT_DYNODE=82;
-      const int DD_TRACE_IMPLANT_POSITION=83;
-      const int DD_TRACE_IMPLANT_PILEUP=84;
+		const int DD_TRACE_IMPLANT_ALL=81;
+		const int DD_TRACE_IMPLANT_DYNODE=82;
+		const int DD_TRACE_IMPLANT_POSITION=83;
+		const int DD_TRACE_IMPLANT_PILEUP=84;
      
-      const int DD_TRACE_DECAY_ALL=85;
-      const int DD_TRACE_DECAY_DYNODE=86;
-      const int DD_TRACE_DECAY_POSITION=87;
-      const int DD_TRACE_DECAY_PILEUP=88;
+		const int DD_TRACE_DECAY_ALL=85;
+		const int DD_TRACE_DECAY_DYNODE=86;
+		const int DD_TRACE_DECAY_POSITION=87;
+		const int DD_TRACE_DECAY_PILEUP=88;
             
-      const int DD_MWPC=89;
-      const int DD_MWPC_PSPMT=90;
-      const int DD_MWPC_NOPSPMT=91;
-      const int DD_TRACE_SLOW=95;
+		const int DD_MWPC=89;
+		const int DD_MWPC_PSPMT=90;
+		const int DD_MWPC_NOPSPMT=91;
+		const int DD_TRACE_SLOW=95;
 
-      const int DD_CHE_REG=96;
-      const int DD_QDC_REG=97;
-      const int DD_QDC_REG_IMPLANT=99;
-      const int DD_QDC_REG_DECAY=100;
-      const int DD_QDC_REG2_IMPLANT=101;
-      const int DD_QDC_REG2_DECAY=102;
+		const int DD_CHE_REG=96;
+		const int DD_QDC_REG=97;
+		const int DD_QDC_REG_IMPLANT=99;
+		const int DD_QDC_REG_DECAY=100;
+		const int DD_QDC_REG2_IMPLANT=101;
+		const int DD_QDC_REG2_DECAY=102;
  
       
 
-      const int DD_REG12=103;
-      const int DD_REG12_IMPLANT=104;
-      const int DD_REG12_DECAY=105;
+		const int DD_REG12=103;
+		const int DD_REG12_IMPLANT=104;
+		const int DD_REG12_DECAY=105;
       
-      const int DD_QDC_REG1=106;
-      const int DD_QDC_REG2=107;
+		const int DD_QDC_REG1=106;
+		const int DD_QDC_REG2=107;
 
-      const int DD_TRACE_HIGHENE=108;
-      const int DD_TRACE_HIGHENE2=109;
-      const int DD_TRACE_HIGHENE3=110;
-      const int DD_ENE_QDC_DECAY=112;
-      const int DD_ENE_QDC_IMPLANT=113;
-      const int DD_TRACE_HIGHENE4=114;
+		const int DD_TRACE_HIGHENE=108;
+		const int DD_TRACE_HIGHENE2=109;
+		const int DD_TRACE_HIGHENE3=110;
+		const int DD_ENE_QDC_DECAY=112;
+		const int DD_ENE_QDC_IMPLANT=113;
+		const int DD_TRACE_HIGHENE4=114;
 
-      const int DD_P1D_QDCCAL=115;
-      const int DD_QDCREG_SPECIFIC=116;
+		const int DD_P1D_QDCCAL=115;
+		const int DD_QDCREG_SPECIFIC=116;
 
     }
 }
@@ -138,70 +138,70 @@ void PspmtProcessor::PspmtData::Clear(void) {
 }
 
 PspmtEvent::PspmtEvent(){
-  ene_pspmt_  = -1.0;
-  ene_trace_  = -1.0;
-  time_pspmt_ = -1.0;
-  time_mwpc_  = -1.0;
-  is_beam_    = false;
-  is_decay_   = false;
-  is_veto_    = false;
+	ene_pspmt_  = -1.0;
+	ene_trace_  = -1.0;
+	time_pspmt_ = -1.0;
+	time_mwpc_  = -1.0;
+	is_beam_    = false;
+	is_decay_   = false;
+	is_veto_    = false;
 }
 
 PspmtEvent::PspmtEvent(double ene_pspmt,double ene_trace,double time_pspmt,double time_mwpc,bool is_beam,bool is_decay,bool is_veto){
-  set_ene_pspmt(ene_pspmt);
-  set_ene_trace(ene_trace);
-  set_time_pspmt(time_pspmt);
-  set_time_mwpc(time_mwpc);
-  set_is_beam(is_beam);
-  set_is_decay(is_decay);
-  set_is_veto(is_veto);
+	set_ene_pspmt(ene_pspmt);
+	set_ene_trace(ene_trace);
+	set_time_pspmt(time_pspmt);
+	set_time_mwpc(time_mwpc);
+	set_is_beam(is_beam);
+	set_is_decay(is_decay);
+	set_is_veto(is_veto);
 }
 
 PspmtProcessor::PspmtProcessor(void) : 
-  EventProcessor(OFFSET, RANGE, "pspmt")
+	EventProcessor(OFFSET, RANGE, "pspmt")
 {
-  associatedTypes.insert("pspmt");
-  int size_x=24;
-  int size_y=24;
-  pixels_ = new deque<PspmtEvent>*[size_x];
-  for(int i=0;i<size_x;i++){
-    pixels_[i] = new deque<PspmtEvent>[size_y];
-  }
+	associatedTypes.insert("pspmt");
+	int size_x=24;
+	int size_y=24;
+	pixels_ = new deque<PspmtEvent>*[size_x];
+	for(int i=0;i<size_x;i++){
+		pixels_[i] = new deque<PspmtEvent>[size_y];
+	}
 }
 
 PspmtProcessor::~PspmtProcessor(){
   
-  int size_y=24;
-  for(int i=0;i<size_y;i++){
-    delete [] pixels_[i];
-  }
-  delete[] pixels_;
+	int size_y=24;
+	for(int i=0;i<size_y;i++){
+		delete [] pixels_[i];
+	}
+	delete[] pixels_;
 }
 
 void PspmtProcessor::DeclarePlots(void) {
    
-  const int posBins      = 32; 
-  const int traceBins    = 256;
-  const int timeBins     = 256;
-  const int traceBins2   = 512;
-  const int mapBins      = 800;
-  const int p1dBins      = 800;
-  const int Bins         = 2500;
-  const int energyBins   = 2048;
-  const int regBins      = 2048;
-  const int corrBins     = 2048;
+	const int posBins      = 32; 
+	const int traceBins    = 256;
+	const int timeBins     = 256;
+	const int traceBins2   = 512;
+	const int mapBins      = 1024;
+	const int p1dBins      = 1024;
+	const int Bins         = 4096;
+	const int energyBins   = 2048;
+	const int regBins      = 2048;
+	const int corrBins     = 2048;
   
-  // Raw 0-29
+	// Raw 0-29
     DeclareHistogram1D(D_RAW1, energyBins, "Pspmt1 Raw");
     DeclareHistogram1D(D_RAW2, energyBins, "Pspmt2 Raw");
     DeclareHistogram1D(D_RAW3, energyBins, "Pspmt3 Raw");
     DeclareHistogram1D(D_RAW4, energyBins, "Pspmt4 Raw");
     DeclareHistogram1D(D_RAWD, energyBins, "Pspmt Dynode");
     DeclareHistogram1D(D_SUM,  energyBins, "Pspmt Sum");
-    DeclareHistogram2D(DD_POS1_RAW, mapBins, mapBins, "Pspmt Pos1 Raw");
-    DeclareHistogram2D(DD_POS2_RAW, mapBins, mapBins, "Pspmt Pos2 Raw");
-    DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1");
-    DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2");
+    DeclareHistogram2D(DD_POS1_RAW, mapBins, mapBins, "Pspmt Pos1 Raw"); // 1906
+    DeclareHistogram2D(DD_POS2_RAW, mapBins, mapBins, "Pspmt Pos2 Raw"); // 1907
+    DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
+    DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE3, energyBins, "Energy3 from trace");
@@ -217,8 +217,8 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram1D(D_QDC_TRACE3, energyBins, "Energy3 from QDC scaled by 10");
     DeclareHistogram1D(D_QDC_TRACE4, energyBins, "Energy4 from QDC scaled by 10");
     DeclareHistogram1D(D_QDC_TRACED, energyBins, "EnergyD from QDC scaled by 10");
-    DeclareHistogram2D(DD_POS1_RAW_QDC, mapBins, mapBins, "Pspmt pos Raw by QDC");
-    DeclareHistogram2D(DD_POS1_QDC, posBins, posBins, "Pspmt pos by QDC");
+    DeclareHistogram2D(DD_POS1_RAW_QDC, mapBins, mapBins, "Pspmt pos Raw by QDC"); // 1926
+    DeclareHistogram2D(DD_POS1_QDC, posBins, posBins, "Pspmt pos by QDC"); // 1927
     DeclareHistogram2D(DD_DIRCAL1, mapBins, mapBins, "Map direction calibrated");
    
     
@@ -228,10 +228,10 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_P1D_QDC, energyBins,Bins, "Ch vs Dynode QDC scaled by 10");
     DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,Bins, "Ch vs QDCSum scaled by 40");
     // Energy res by correlation
-    DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)");
-    DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)");
-    DeclareHistogram2D(DD_P1D_IMPLANT_QDC, energyBins,p1dBins, "[Implant] ch vs E(QDC)");
-    DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,p1dBins, "[Decay] ch vs E(QDC)");
+    DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)"); // 1935
+    DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)"); // 1936
+    DeclareHistogram2D(DD_P1D_IMPLANT_QDC, energyBins,p1dBins, "[Implant] ch vs E(QDC)"); // 1937
+    DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,p1dBins, "[Decay] ch vs E(QDC)"); // 1938
 
     
     
@@ -243,21 +243,21 @@ void PspmtProcessor::DeclarePlots(void) {
     
 
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
-		       "2nd Ty,Ex (10ns/ch)(xkeV)");
+					   "2nd Ty,Ex (10ns/ch)(xkeV)"); // 1950
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 1, corrBins, corrBins, 
-		       "2nd Ty,Ex (100ns/ch)(xkeV)");
+					   "2nd Ty,Ex (100ns/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 2, corrBins, corrBins,
-		       "2nd Ty,Ex (1us/ch)(xkeV)");
+					   "2nd Ty,Ex (1us/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 3, corrBins, corrBins,
-		       "2nd Ty,Ex (10us/ch)(xkeV)");
+					   "2nd Ty,Ex (10us/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 4, corrBins, corrBins, 
-		       "2nd Ty,Ex (100us/ch)(xkeV)");
+					   "2nd Ty,Ex (100us/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 5, corrBins, corrBins,
-		       "2nd Ty,Ex (1ms/ch)(xkeV)");
+					   "2nd Ty,Ex (1ms/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 6, corrBins, corrBins,
-		       "2nd Ty,Ex (10ms/ch)(xkeV)");
+					   "2nd Ty,Ex (10ms/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 7, corrBins, corrBins,
-		       "2nd Ty,Ex (100ms/ch)(xkeV)");
+					   "2nd Ty,Ex (100ms/ch)(xkeV)"); // 1957
  
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 4, corrBins, corrBins,		       "TraceMax Ty,Ex (100us/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 5, corrBins, corrBins, 		       "TraceMax Ty,Ex (1ms/ch)(xkeV)");
@@ -317,10 +317,10 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_QDC_REG2, regBins, regBins,"QDC vs REG2");   
    
     
-    DeclareHistogram2D(DD_TRACE_HIGHENE , traceBins, traceBins2,"Trace Decay High energy");
-    DeclareHistogram2D(DD_TRACE_HIGHENE2, traceBins, traceBins2,"Trace Decay Alpha");
-    DeclareHistogram2D(DD_TRACE_HIGHENE3, traceBins, traceBins2,"Trace Decay Beta");
-    DeclareHistogram2D(DD_TRACE_HIGHENE4, traceBins, traceBins2,"Trace Decay HighQDC/Ech ratio gated");    
+    DeclareHistogram2D(DD_TRACE_HIGHENE , traceBins, traceBins2,"Trace Decay High energy"); 
+    DeclareHistogram2D(DD_TRACE_HIGHENE2, traceBins, traceBins2,"Trace Decay Alpha"); // 2009
+    DeclareHistogram2D(DD_TRACE_HIGHENE3, traceBins, traceBins2,"Trace Decay Beta"); // 2010
+    DeclareHistogram2D(DD_TRACE_HIGHENE4, traceBins, traceBins2,"Trace Decay HighQDC/Ech ratio gated"); // 2014
 
     DeclareHistogram2D(DD_ENE_QDC_DECAY, energyBins, energyBins,"[Decay] Ech vs QDC");
     DeclareHistogram2D(DD_ENE_QDC_IMPLANT, energyBins, energyBins,"[Implantation] Ech vs QDC");
@@ -499,10 +499,10 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
             pytop    = trunc(slope*ytop-intercept);
             pybottom = trunc(slope*ybottom-intercept);
             
-            plot(DD_POS1_RAW,xright,ytop);
-            plot(DD_POS2_RAW,xleft,ybottom);
-            plot(DD_POS1,pxright,pytop);
-            plot(DD_POS2,pxleft,pybottom);
+            plot(DD_POS1_RAW,xright,ytop); // 1906
+            plot(DD_POS2_RAW,xleft,ybottom); // 1907
+            plot(DD_POS1,pxright,pytop); // 1908
+            plot(DD_POS2,pxleft,pybottom); // 1909
 	    
 		}
     } // end of channel event
@@ -820,7 +820,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_QDC_REG_DECAY,qdcd_cal,regression); // QDC vs Reg1
 		plot(DD_QDC_REG2_DECAY,qdcd_cal,regression2); // QDC vs Reg2
     
-		plot(DD_P1D_DECAY_CHE,qd,p1d); // ChE vs P1D
+		plot(DD_P1D_DECAY_CHE,qd,p1d); // ChE vs P1D, 1936
 		plot(DD_P1D_DECAY_QDC,qdcd_cal,p1d); // QDC vs P1D
 		plot(DD_REG12_DECAY,regression,regression2); // Reg1 vs Reg2
 		plot(DD_ENE_QDC_DECAY,qd,qdcd_cal); // ChE vs QDC
