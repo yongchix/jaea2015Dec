@@ -17,6 +17,10 @@
 using namespace std;
 using namespace dammIds::pspmt;
 
+/* by Yongchi Xiao, 01/17/2018
+ * Use the external variable pixelCalib as a reference for 
+ * calibrating (gainmatching) energy in each pixel
+ */
 
 namespace dammIds{
     namespace pspmt{   // the offset is 1900   
@@ -805,6 +809,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 	if(p1d>=0 && p1d<576){
 		qdcd_cal = calib[p1d]*qdcd/100;
 		trmax    = calib[p1d]*max_dynode/10;
+		// by Yongchi Xiao; 01/17/2018
+		//		qdcs *= pixelCalib[p1d];
 	}
  
   
@@ -812,6 +818,8 @@ bool PspmtProcessor::Process(RawEvent &event){
  
  
 	plot(DD_P1D_QDCCAL,qdcd_cal,p1d);  // QDC vs P1D
+
+
   
 	if(has_decay && !has_veto){
     
@@ -858,7 +866,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
-		plot(DD_P1D_QDCSUM,qdcs/40,p1d);           // QDCsum cs P1D, 1933
+		plot(DD_P1D_QDCSUM,qdcs/40.*pixelCalib[p1d],p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
     
 	}

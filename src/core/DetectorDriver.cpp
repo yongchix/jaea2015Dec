@@ -61,6 +61,15 @@
 using namespace std;
 using namespace dammIds::raw;
 
+/* by Yongchi Xiao, 01/17/2018                                                                                                                    
+ * create a 1-d array containing energy calibration parameters for                                                                               
+ * each pixel.                                                                                                                                   
+ * Must gaurentee that it is:                                                                                                                    
+ * 1) accessible for PspmtProcessor                                                                                                              
+ * 2) generated and filled once upon the call of DetectorDriver                                                                                  
+ */
+double pixelCalib[600] = {};
+
 DetectorDriver* DetectorDriver::instance = NULL;
 
 DetectorDriver* DetectorDriver::get() {
@@ -405,6 +414,7 @@ int DetectorDriver::Init(RawEvent& rawev) {
     try {
         ReadCalXml();
         ReadWalkXml();
+		ReadPixelCalib(); /* by Yongchi Xiao, 01/17/2018 */ 
     } catch (GeneralException &e) {
         //! Any exception in reading calibration and walk correction
         //! will be intercepted here
@@ -752,10 +762,31 @@ void DetectorDriver::ReadCalXml() {
     m.done();
 }
 
-void DetectorDriver::ReadPixelCalib() {
+void DetectorDriver::ReadPixelCalib() { // by Yongchi Xiao; 01/17/2018
+	int pixel; 
+	double slope; 
 	Messenger m; 
 	m.start("Loading pixel calibration data"); 
+	fstream infile;
+	infile.open("PixelCalib.cal", std::iostream::in); 
+	if(!infile.is_open()) {
+		stringstream ss;
+		ss << "Cannot locate pixelized calibration data";
+		throw GeneralException(ss.str());
+	} else {
+		while(!infile.eof()) {
+			infile >> pixel >> slope; 
+			pixelCalib[pixel] = slope;
+			if(infile.eof()) break;
+		}
+	}
+	infile.close();
 	m.done();
+	/*
+	for(int i = 0; i < 600; i++) {
+		cout << i << "  " << pixelCalib[i] << "; " << endl;
+	}
+	*/
 }
 
 void DetectorDriver::ReadWalkXml() {

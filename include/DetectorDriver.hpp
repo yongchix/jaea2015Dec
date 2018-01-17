@@ -50,6 +50,8 @@ class RawEvent;
 class EventProcessor;
 class TraceAnalyzer;
 
+extern double pixelCalib[600]; 
+
 /*! \brief DetectorDriver controls event processing
 
   This class controls the processing of each event and includes the
