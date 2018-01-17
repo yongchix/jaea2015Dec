@@ -199,6 +199,12 @@ private:
     void ReadCalXml();
     /** Read in the Walk correction parameters from the Config.xml */
     void ReadWalkXml();
+	
+	/* by Yongchi Xiao
+	 * Read in the energy calibration data from the file: PixelCalib.cal
+	 * which is just a plain text file 
+	 */ 
+	void ReadPixelCalib();
 };
 
 #endif // __DETECTORDRIVER_HPP_

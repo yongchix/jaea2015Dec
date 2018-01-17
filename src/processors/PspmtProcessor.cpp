@@ -225,8 +225,8 @@ void PspmtProcessor::DeclarePlots(void) {
     // Energy resolutions 30-
     DeclareHistogram2D(DD_P1D_CHANNEL, energyBins,Bins, "Ch vs Dynode EChannel");
     DeclareHistogram2D(DD_P1D_TRACE, energyBins,Bins, "Ch vs Dynode ETrace");
-    DeclareHistogram2D(DD_P1D_QDC, energyBins,Bins, "Ch vs Dynode QDC scaled by 10");
-    DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,Bins, "Ch vs QDCSum scaled by 40");
+    DeclareHistogram2D(DD_P1D_QDC, energyBins,1024, "Ch vs Dynode QDC scaled by 10"); // 1932
+    DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "Ch vs QDCSum scaled by 40"); // 1933
     // Energy res by correlation
     DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)"); // 1935
     DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)"); // 1936
@@ -858,7 +858,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
-		plot(DD_P1D_QDCSUM,qdcs/40,p1d);           // QDCsum cs P1D
+		plot(DD_P1D_QDCSUM,qdcs/40,p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
     
 	}

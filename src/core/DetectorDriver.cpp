@@ -752,6 +752,12 @@ void DetectorDriver::ReadCalXml() {
     m.done();
 }
 
+void DetectorDriver::ReadPixelCalib() {
+	Messenger m; 
+	m.start("Loading pixel calibration data"); 
+	m.done();
+}
+
 void DetectorDriver::ReadWalkXml() {
     pugi::xml_document doc;
 
