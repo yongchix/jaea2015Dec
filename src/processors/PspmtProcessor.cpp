@@ -879,14 +879,14 @@ bool PspmtProcessor::Process(RawEvent &event){
 		 * make correlations beyond this point 
 		 */
 		double timeDiff = 0; 
-		if(has_implant) {
+		if(has_implant && qdcCalib > 0) {
 			implantRec[p1d].energy = qdcCalib; 
 			implantRec[p1d].time = pspmttime; 
 			// remove decay events
-			for(int i = 0; i < 2; i++) {
+			for(int i = 0; i < 1; i++) {
 				decayRec[i][p1d].Clear();
 			}
-		} else if(has_decay) {
+		} else if(has_decay && qdcCalib > 0) {
 			if(!decayRec[0][p1d].Is_Filled()) {
 				decayRec[0][p1d].time = pspmttime;
 				decayRec[0][p1d].energy = qdcCalib;
@@ -896,7 +896,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(47, qdcCalib, timeDiff*1e5); 
 				plot(48, qdcCalib, timeDiff*1e3); 
 				plot(49, qdcCalib, timeDiff*1e2);
-			} else if(!decayRec[1][p1d].Is_Filled()) {
+			} /*else if(!decayRec[1][p1d].Is_Filled()) {
 				decayRec[1][p1d].time = pspmttime;
 				decayRec[1][p1d].energy = qdcCalib;
 				timeDiff = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
@@ -905,7 +905,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(47, qdcCalib, timeDiff*1e5); 
 				plot(48, qdcCalib, timeDiff*1e3); 
 				plot(49, qdcCalib, timeDiff*1e2); 
-			} 
+				} */
 		}
 
 	}
