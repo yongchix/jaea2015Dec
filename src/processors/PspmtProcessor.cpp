@@ -244,11 +244,13 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_MAP_IMPLANT_CHE, mapBins, mapBins, "ChE MAP Implant direction calib."); // 1941
     DeclareHistogram2D(DD_MAP_DECAY_CHE, mapBins, mapBins, "ChE MAP Decay direction calib."); // 1942
 
-	DeclareHistogram2D(46, 2048, 1024, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
-	DeclareHistogram2D(47, 2048, 1024, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
-	DeclareHistogram2D(48, 2048, 1024, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
-	DeclareHistogram2D(49, 2048, 1024, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
-	
+	// by Yongchi Xiao, 01/18/2018
+	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
+	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
+	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
+	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
+	// correlation matrix
+	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 2 ms"); // 1966
     
 
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
@@ -633,7 +635,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	static int traceNumbigqdc=0;
 
 	// by Yongchi Xiao, 01/18/2018
-	double qdcCalib = 0; 
+	double qdcCalib = -1; 
   
 	int p1d;
 	double threshold=0;
@@ -874,42 +876,54 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
 		plot(DD_P1D_QDCSUM,(qdcCalib=qdcs/40.*pixelCalib[p1d]),p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
-    
-		/* by Yongchi Xiao
-		 * make correlations beyond this point 
-		 */
-		double timeDiff = 0; 
-		if(has_implant && qdcCalib > 0) {
-			implantRec[p1d].energy = qdcCalib; 
-			implantRec[p1d].time = pspmttime; 
-			// remove decay events
-			for(int i = 0; i < 1; i++) {
-				decayRec[i][p1d].Clear();
-			}
-		} else if(has_decay && qdcCalib > 0) {
+	}
+  
+	/* by Yongchi Xiao
+	 * make correlations beyond this point 
+	 */
+	double timeDiffImplant = 0;
+	double timeDiffDecay = 0;  
+	if(has_implant && qdcCalib > 0) {
+		implantRec[p1d].energy = qdcCalib; 
+		implantRec[p1d].time = pspmttime; 
+		// remove decay events
+		for(int i = 0; i < 2; i++) {
+			decayRec[i][p1d].Clear();
+		}
+	} else if(has_decay && qdcCalib > 0) {
+		if(implantRec[p1d].Is_Filled()) { // the preceding ion has been found
 			if(!decayRec[0][p1d].Is_Filled()) {
 				decayRec[0][p1d].time = pspmttime;
 				decayRec[0][p1d].energy = qdcCalib;
-				timeDiff = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
 				// plot 1946-1949
-				plot(46, qdcCalib, timeDiff*1e6); 
-				plot(47, qdcCalib, timeDiff*1e5); 
-				plot(48, qdcCalib, timeDiff*1e3); 
-				plot(49, qdcCalib, timeDiff*1e2);
-			} /*else if(!decayRec[1][p1d].Is_Filled()) {
+				plot(46, qdcCalib, timeDiffImplant*1e6); 
+				plot(47, qdcCalib, timeDiffImplant*1e5); 
+				plot(48, qdcCalib, timeDiffImplant*1e3); 
+				plot(49, qdcCalib, timeDiffImplant*1e2);
+			} else if(!decayRec[1][p1d].Is_Filled()) {
 				decayRec[1][p1d].time = pspmttime;
 				decayRec[1][p1d].energy = qdcCalib;
-				timeDiff = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
 				// plot 1946-1949
+				/*
 				plot(46, qdcCalib, timeDiff*1e6); 
 				plot(47, qdcCalib, timeDiff*1e5); 
 				plot(48, qdcCalib, timeDiff*1e3); 
 				plot(49, qdcCalib, timeDiff*1e2); 
-				} */
+				*/
+				/* Find correlated decays: 
+				 * T1/2 for 109Xe: 13 ms
+				 * T1/2 for 105Te: 0.62 us
+				 */
+				if((decayRec[1][p1d].time - decayRec[0][p1d].time)*Globals::get()->clockInSeconds() < 0.5e-3
+				   && (decayRec[1][p1d].time - decayRec[0][p1d].time) > 0) {
+					plot(66, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
+				}
+			} 
 		}
-
 	}
-  
+
   
 	/********************************* Below are for traces **************************************/    
   
