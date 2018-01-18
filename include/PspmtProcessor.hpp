@@ -85,4 +85,25 @@ private:
     void Clear(void);
   } data_;
 };
+
+struct PixelEvent {
+	double energy;
+	double time;
+	PixelEvent() {
+		energy = -1;
+		time = -1;
+	}
+	~PixelEvent() {
+		energy = -1;
+		time = -1;
+	}
+	void Clear() {
+		energy = -1;
+		time = -1;
+	}
+	bool Is_Filled() {
+		return (time > 0); 
+	}
+};
+
 #endif // __PSPMTPROCESSOR_HPP__

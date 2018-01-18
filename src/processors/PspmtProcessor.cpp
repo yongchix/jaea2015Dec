@@ -239,11 +239,16 @@ void PspmtProcessor::DeclarePlots(void) {
 
     
     
-    DeclareHistogram2D(DD_MAP_IMPLANT, mapBins, mapBins, "2D MAP Implant direction calib.");
-    DeclareHistogram2D(DD_MAP_DECAY, mapBins, mapBins, "2D MAP Decay direction calib.");
-    DeclareHistogram2D(DD_MAP_IMPLANT_CHE, mapBins, mapBins, "ChE MAP Implant direction calib.");
-    DeclareHistogram2D(DD_MAP_DECAY_CHE, mapBins, mapBins, "ChE MAP Decay direction calib.");
-    
+    DeclareHistogram2D(DD_MAP_IMPLANT, mapBins, mapBins, "2D MAP Implant direction calib."); // 1939
+    DeclareHistogram2D(DD_MAP_DECAY, mapBins, mapBins, "2D MAP Decay direction calib."); // 1940
+    DeclareHistogram2D(DD_MAP_IMPLANT_CHE, mapBins, mapBins, "ChE MAP Implant direction calib."); // 1941
+    DeclareHistogram2D(DD_MAP_DECAY_CHE, mapBins, mapBins, "ChE MAP Decay direction calib."); // 1942
+
+	DeclareHistogram2D(46, 2048, 1024, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
+	DeclareHistogram2D(47, 2048, 1024, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
+	DeclareHistogram2D(48, 2048, 1024, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
+	DeclareHistogram2D(49, 2048, 1024, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
+	
     
 
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
@@ -279,9 +284,9 @@ void PspmtProcessor::DeclarePlots(void) {
 
 
     // Trace Max calibration 
-    DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, p1dBins,"Decay TraceMax vs P1D");
-    DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, p1dBins,"Decay TraceMaxCal vs P1D");
-    DeclareHistogram2D(DD_TRMAX_QDC, energyBins, energyBins,"Decay TraceMaxCal vs QDCcal");
+    DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, p1dBins,"Decay TraceMax vs P1D"); // 1943
+    DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, p1dBins,"Decay TraceMaxCal vs P1D"); // 1944
+    DeclareHistogram2D(DD_TRMAX_QDC, energyBins, energyBins,"Decay TraceMaxCal vs QDCcal"); // 1945
 
     // Trace
    
@@ -515,8 +520,9 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
     return(true);
 }
 
-
-
+// for correlations
+static PixelEvent implantRec[600] = {};
+static PixelEvent decayRec[2][600] = {};
 
 bool PspmtProcessor::Process(RawEvent &event){
 	if (!EventProcessor::Process(event))
@@ -569,16 +575,16 @@ bool PspmtProcessor::Process(RawEvent &event){
 		has_pspmt=false;
 	}
 	if(mult_mwpc>0) {
-		has_mwpc=true;
+		has_mwpc=true; // flag for mwpc
 	}
 	if(mult_nai>0){
 		has_nai=true;
 	}
 	if(has_mwpc && has_pspmt){
-		has_implant = true;
+		has_implant = true; // flag for implant
 	}
 	if(!has_mwpc && has_pspmt){
-		has_decay   = true;
+		has_decay   = true; // flag for decay
 	}
 	if(has_nai){
 		has_veto    = true;  
@@ -625,6 +631,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 	static int traceNumAlpha=0;
 	static int traceNumBeta=0;
 	static int traceNumbigqdc=0;
+
+	// by Yongchi Xiao, 01/18/2018
+	double qdcCalib = 0; 
   
 	int p1d;
 	double threshold=0;
@@ -809,8 +818,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 	if(p1d>=0 && p1d<576){
 		qdcd_cal = calib[p1d]*qdcd/100;
 		trmax    = calib[p1d]*max_dynode/10;
-		// by Yongchi Xiao; 01/17/2018
-		//		qdcs *= pixelCalib[p1d];
 	}
  
   
@@ -820,7 +827,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	plot(DD_P1D_QDCCAL,qdcd_cal,p1d);  // QDC vs P1D
 
 
-  
+	/* Decay without veto */  
 	if(has_decay && !has_veto){
     
 		//    plot(DD_POS_RAW_DECAY,xright,ytop); // MAP Raw 
@@ -838,8 +845,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_TRACEMAXCAL_P1D,trmax,p1d);
 		plot(DD_TRMAX_QDC,trmax,qdcd_cal);
 	}
+	/* Implant */
 	if(has_implant){
-    
 		// plot(DD_POS_RAW_IMPLANT,xright,ytop); // MAP Raw
 		plot(DD_MAP_IMPLANT,xcal,ycal); // MAP
 		plot(DD_QDC_REG_IMPLANT,qdcd_cal,regression); // QDC vs Reg1
@@ -848,13 +855,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_IMPLANT_QDC,qdcd_cal,p1d); // QDC vs P1D
 		plot(DD_REG12_IMPLANT,regression,regression2); // Reg1 vs Reg2
 		plot(DD_ENE_QDC_IMPLANT,qd,qdcd_cal); // ChE cs QDC Implant
- 
-		plot(DD_MAP_IMPLANT_CHE,xright,ytop);
+ 		plot(DD_MAP_IMPLANT_CHE,xright,ytop);
    
 	}
   
+	/* Signal read from four corners */
 	if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0){
-    
 		plot(DD_POS1_RAW_QDC,xqdc_right,yqdc_top); // MAP 
 		plot(DD_DIRCAL1,xcal,ycal);                // MAP dir. calib.
 		plot(DD_POS1_QDC,pxqdc_right,pyqdc_top);   // Integer MAP
@@ -866,19 +872,50 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
-		plot(DD_P1D_QDCSUM,qdcs/40.*pixelCalib[p1d],p1d);           // QDCsum cs P1D, 1933
+		plot(DD_P1D_QDCSUM,(qdcCalib=qdcs/40.*pixelCalib[p1d]),p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
     
+		/* by Yongchi Xiao
+		 * make correlations beyond this point 
+		 */
+		double timeDiff = 0; 
+		if(has_implant) {
+			implantRec[p1d].energy = qdcCalib; 
+			implantRec[p1d].time = pspmttime; 
+			// remove decay events
+			for(int i = 0; i < 2; i++) {
+				decayRec[i][p1d].Clear();
+			}
+		} else if(has_decay) {
+			if(!decayRec[0][p1d].Is_Filled()) {
+				decayRec[0][p1d].time = pspmttime;
+				decayRec[0][p1d].energy = qdcCalib;
+				timeDiff = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+				// plot 1946-1949
+				plot(46, qdcCalib, timeDiff*1e6); 
+				plot(47, qdcCalib, timeDiff*1e5); 
+				plot(48, qdcCalib, timeDiff*1e3); 
+				plot(49, qdcCalib, timeDiff*1e2);
+			} else if(!decayRec[1][p1d].Is_Filled()) {
+				decayRec[1][p1d].time = pspmttime;
+				decayRec[1][p1d].energy = qdcCalib;
+				timeDiff = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+				// plot 1946-1949
+				plot(46, qdcCalib, timeDiff*1e6); 
+				plot(47, qdcCalib, timeDiff*1e5); 
+				plot(48, qdcCalib, timeDiff*1e3); 
+				plot(49, qdcCalib, timeDiff*1e2); 
+			} 
+		}
+
 	}
   
   
-   
+	/********************************* Below are for traces **************************************/    
   
-	for(vector<int>::iterator ittr = traceD.begin();ittr != traceD.end();ittr++){
-     
+	for(vector<int>::iterator ittr = traceD.begin();ittr != traceD.end();ittr++){    
 		plot(DD_SINGLE_TRACE,ittr-traceD.begin(),traceNum,*ittr);
 		plot(DD_TRACE_DYNODE,ittr-traceD.begin(),traceNumDynode,*ittr);
-     
 		if(has_pileup){
 			plot(DD_DOUBLE_TRACE,ittr-traceD.begin(),traceNumSecond,*ittr);
 		}
@@ -984,7 +1021,7 @@ bool PspmtProcessor::Process(RawEvent &event){
        
 	}
 
-    
+	/********************************** End of processing traces ********************************************/    
      
       
   
