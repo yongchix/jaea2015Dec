@@ -232,10 +232,10 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_P1D_QDC, energyBins,1024, "Ch vs Dynode QDC scaled by 10"); // 1932
     DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "Ch vs QDCSum scaled by 40"); // 1933
     // Energy res by correlation
-    DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)"); // 1935
-    DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)"); // 1936
-    DeclareHistogram2D(DD_P1D_IMPLANT_QDC, energyBins,p1dBins, "[Implant] ch vs E(QDC)"); // 1937
-    DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,p1dBins, "[Decay] ch vs E(QDC)"); // 1938
+    DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,1024, "[Implant] ch vs E(ch)"); // 1935
+    DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,1024,   "[Decay] ch vs E(ch)"); // 1936
+    DeclareHistogram2D(DD_P1D_IMPLANT_QDC, energyBins,1024, "[Implant] ch vs E(QDC)"); // 1937
+    DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,1024, "[Decay] ch vs E(QDC)"); // 1938
 
     
     
@@ -274,18 +274,18 @@ void PspmtProcessor::DeclarePlots(void) {
 
   
     // Time gated Decay P1D
-    DeclareHistogram2D(DD_P1D_DECAY_TIME0, energyBins,p1dBins, "Decay time gated < 1  ms ");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME1, energyBins,p1dBins, "Decay time gated < 10 ms");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME2, energyBins,p1dBins, "Decay time gated < 100 ms");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME3, energyBins,p1dBins, "Decay time gated < 1 s");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME4, energyBins,p1dBins, "Decay time gated < 10 s");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME5, energyBins,p1dBins, "Decay time gated 5");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME0, energyBins,1024, "Decay time gated < 1  ms ");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME1, energyBins,1024, "Decay time gated < 10 ms");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME2, energyBins,1024, "Decay time gated < 100 ms");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME3, energyBins,1024, "Decay time gated < 1 s");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME4, energyBins,1024, "Decay time gated < 10 s");
+    DeclareHistogram2D(DD_P1D_DECAY_TIME5, energyBins,1024, "Decay time gated 5");
 
 
 
     // Trace Max calibration 
-    DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, p1dBins,"Decay TraceMax vs P1D"); // 1943
-    DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, p1dBins,"Decay TraceMaxCal vs P1D"); // 1944
+    DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, 1024,"Decay TraceMax vs P1D"); // 1943
+    DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, 1024,"Decay TraceMaxCal vs P1D"); // 1944
     DeclareHistogram2D(DD_TRMAX_QDC, energyBins, energyBins,"Decay TraceMaxCal vs QDCcal"); // 1945
 
     // Trace
@@ -599,7 +599,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	//has_veto     = true;
 	// End of virtual switches  ///////
   
-	double q1=0,q2=0,q3=0,q4=0,qd=0;
+	double q1=0,q2=0,q3=0,q4=0,qd=0, qdCalib; // qdCalib is defined by Yongchi Xiao, 01/21
 	double qtop=0,qleft=0,qbottom=0,qright=0;
 	double qsum=0;
 	double xright=0,xleft=0,ytop=0,ybottom=0;
@@ -835,7 +835,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_QDC_REG_DECAY,qdcd_cal,regression); // QDC vs Reg1
 		plot(DD_QDC_REG2_DECAY,qdcd_cal,regression2); // QDC vs Reg2
     
-		plot(DD_P1D_DECAY_CHE,qd,p1d); // ChE vs P1D, 1936
+		plot(DD_P1D_DECAY_CHE,qd*2,p1d); // ChE vs P1D, 1936
 		plot(DD_P1D_DECAY_QDC,qdcd_cal,p1d); // QDC vs P1D
 		plot(DD_REG12_DECAY,regression,regression2); // Reg1 vs Reg2
 		plot(DD_ENE_QDC_DECAY,qd,qdcd_cal); // ChE vs QDC
