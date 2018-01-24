@@ -10,14 +10,15 @@
 
 class NaIProcessor : public EventProcessor
 {
- public:
-  NaIProcessor();
-  virtual void DeclarePlots(void);
-  virtual bool Process(RawEvent &rEvent);
+public:
+	NaIProcessor();
+	virtual void DeclarePlots(void);
+	virtual bool PreProcess(RawEvent &rEvent); 
+	virtual bool Process(RawEvent &rEvent);
 private:
-  struct NaIData {
-    void Clear(void);
-  } data;
+	struct NaIData {
+		void Clear(void);
+	} data;
 };
 
 #endif // __NAIPROCESSOR_HPP_

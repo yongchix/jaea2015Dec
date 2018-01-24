@@ -30,8 +30,8 @@ void NaIProcessor::DeclarePlots(void)
 {
   
   const int posBins      = S4; //    16
-  const int energyBins   = SE; // 16384
-  DeclareHistogram2D(DD_POSENE, posBins, energyBins, "NaI Position and Energy");
+  const int energyBins   = 1024; // 16384
+  //  DeclareHistogram2D(DD_POSENE, posBins, energyBins, "NaI Position and Energy"); // 2030
   DeclareHistogram1D(DD_POSENE+1, energyBins, "NaI 1");
   DeclareHistogram1D(DD_POSENE+2, energyBins, "NaI 2");
   DeclareHistogram1D(DD_POSENE+3, energyBins, "NaI 3");
@@ -40,8 +40,44 @@ void NaIProcessor::DeclarePlots(void)
   DeclareHistogram1D(DD_POSENE+6, energyBins, "NaI 6");
   DeclareHistogram1D(DD_POSENE+7, energyBins, "NaI 7");
   DeclareHistogram1D(DD_POSENE+8, energyBins, "NaI 8");
+  /* by YX
+   * generate a summed signal for plug-in part of NaI
+   */
+  DeclareHistogram1D(DD_POSENE+9, energyBins, "Plug-in signal"); // 2039
+}
 
-  
+bool NaIProcessor::PreProcess(RawEvent &event) {
+	if (!EventProcessor::Process(event)) 
+		return false;
+	
+	static const vector<ChanEvent*> &naiEvents = sumMap["nai"]->GetList();
+	data.Clear();
+	
+	double sumPlugEnergy = 0; 
+	for (vector<ChanEvent*>::const_iterator it = naiEvents.begin();
+		 it != naiEvents.end(); it++) {
+		ChanEvent *chan = *it;
+      
+		string subtype   = chan->GetChanID().GetSubtype();
+		int number       = chan->GetChanID().GetLocation();
+		double calEnergy = chan->GetCalEnergy();
+		double naiTime   = chan->GetTime();
+		using std::cout;
+		using std::endl; 
+		
+		if(number < 4 ) {
+			sumPlugEnergy += calEnergy; 
+		} 
+	}
+
+	if(sumPlugEnergy > 0) {
+		sumPlugEnergy *= 0.2687; // calibrated to 1 keV/ch
+		plot(DD_POSENE+9, sumPlugEnergy); // 2039
+	}
+
+	EndProcess();
+	return(true);
+	
 }
 
 
