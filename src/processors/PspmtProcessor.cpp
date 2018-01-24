@@ -252,7 +252,8 @@ void PspmtProcessor::DeclarePlots(void) {
 	// correlation matrix
 	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 2 ms"); // 1966
     
-
+	// commented out by YX
+	/*
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
 					   "2nd Ty,Ex (10ns/ch)(xkeV)"); // 1950
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 1, corrBins, corrBins, 
@@ -272,7 +273,7 @@ void PspmtProcessor::DeclarePlots(void) {
  
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 4, corrBins, corrBins,		       "TraceMax Ty,Ex (100us/ch)(xkeV)");
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 5, corrBins, corrBins, 		       "TraceMax Ty,Ex (1ms/ch)(xkeV)");
-    
+    */
 
   
     // Time gated Decay P1D
@@ -863,7 +864,7 @@ bool PspmtProcessor::Process(RawEvent &event){
   
 	/* Signal read from four corners */
 	if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0){
-		plot(DD_POS1_RAW_QDC,xqdc_right,yqdc_top); // MAP 
+		plot(DD_POS1_RAW_QDC,xqdc_right,yqdc_top); // MAP , noted by YX: very important!!!
 		plot(DD_DIRCAL1,xcal,ycal);                // MAP dir. calib.
 		plot(DD_POS1_QDC,pxqdc_right,pyqdc_top);   // Integer MAP
 		plot(DD_CHE_REG,qd,regression);            // ChE vs Reg1
@@ -1038,14 +1039,16 @@ bool PspmtProcessor::Process(RawEvent &event){
 	/********************************** End of processing traces ********************************************/    
      
       
-  
+	/* Commented out by YX 
+	 */
+	/*
 	// Correlation stuffs
 	if(q1>threshold && q2>threshold && q3>threshold && q4>threshold ){
 		PspmtEvent ev(qdcd_cal,trmax,pspmttime,mwpctime,has_implant,has_decay,has_veto);
 		//       cout << qdcd_cal << " " << trmax << endl;
 		AddEvent(ev,px_r,py_t);
 	}
-   
+	*/
    
    
 	EndProcess();
