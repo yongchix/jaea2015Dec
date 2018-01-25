@@ -812,12 +812,14 @@ bool PspmtProcessor::Process(RawEvent &event){
 	pyqdc_bottom = trunc(yslope*yqdc_bottom+yoffset);
 
 	// ???
+	/*
 	if(has_implant){
 		pxqdc_right  = px_r;
 		pxqdc_left   = px_l;
 		pyqdc_top    = py_t;
 		pyqdc_bottom = py_b;
 	}
+	*/
 
 	xcal  = yqdc_top;
 	ycal  = -1*(xqdc_right-offset_mirror)+offset_mirror;
@@ -882,7 +884,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_QDC_REG2,qdcd_cal,regression2);    // QDC vs Reg2
 
 		// for curiosity
-		plot(51, qdcCalib, p1d); // 1951
+		//		plot(51, qdcCalib, p1d); // 1951
     
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D, 1931
