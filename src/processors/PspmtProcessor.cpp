@@ -230,7 +230,8 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_P1D_CHANNEL, energyBins,Bins, "Ch vs Dynode EChannel");
     DeclareHistogram2D(DD_P1D_TRACE, energyBins,Bins, "Ch vs Dynode ETrace"); // 1931
     DeclareHistogram2D(DD_P1D_QDC, energyBins,1024, "Ch vs Dynode QDC scaled by 10"); // 1932
-    DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "Ch vs QDCSum scaled by 40"); // 1933
+    DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "P1D vs QDCSum 4 keV/ch, Decays"); // 1933
+	DeclareHistogram2D(34, energyBins, 1024, "P1D vs. QDCSum 4 keV/ch, Implants"); // 1934
     // Energy res by correlation
     DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)"); // 1935
     DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)"); // 1936
@@ -247,8 +248,10 @@ void PspmtProcessor::DeclarePlots(void) {
 	// by Yongchi Xiao, 01/18/2018
 	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
 	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
-	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
-	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
+	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1948
+	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
+	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
+	
 	// correlation matrix
 	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 0.5 ms"); // 1966
     
@@ -770,48 +773,48 @@ bool PspmtProcessor::Process(RawEvent &event){
     
 	} // end of channel event
 	////////////////////////////
- 
+
+	// based on on-board energy 
 	qtop    = (q1+q2)/2;
 	qleft   = (q2+q3)/2;
 	qbottom = (q3+q4)/2;
 	qright  = (q4+q1)/2;
 	qsum    = (q1+q2+q3+q4)/2;
   
+	xright  = (qright/qsum)*512+100;
+	xleft   = (qleft/qsum)*512+100;
+	ytop    = (qtop/qsum)*512+100;
+	ybottom = (qbottom/qsum)*512+100;
+
+	px_r = trunc(xslope*xright+xoffset);
+	px_l = trunc(xslope*xleft+xoffset);
+	py_t = trunc(yslope*ytop+yoffset);
+	py_b = trunc(yslope*ybottom+yoffset);
+
+	// based on qdc
 	qdc_top    = (qdc1+qdc2)/2;
 	qdc_left   = (qdc2+qdc3)/2;
 	qdc_bottom = (qdc3+qdc4)/2;
 	qdc_right  = (qdc4+qdc1)/2;
 	qdcs=(qdc1+qdc2+qdc3+qdc4)/2;
 
-	xright  = (qright/qsum)*512+100;
-	xleft   = (qleft/qsum)*512+100;
-	ytop    = (qtop/qsum)*512+100;
-	ybottom = (qbottom/qsum)*512+100;
-
 	xqdc_right  = (qdc_right/qdcs)*512+100;
 	xqdc_left   = (qdc_left/qdcs)*512+100;
 	yqdc_top    = (qdc_top/qdcs)*512+100;
 	yqdc_bottom = (qdc_bottom/qdcs)*512+100;
-  
-	px_r = trunc(xslope*xright+xoffset);
-	px_l = trunc(xslope*xleft+xoffset);
-	py_t = trunc(yslope*ytop+yoffset);
-	py_b = trunc(yslope*ybottom+yoffset);
-  
+    
 	pxqdc_right  = trunc(xslope*xqdc_right+xoffset);
 	pxqdc_left   = trunc(xslope*xqdc_left+xoffset);
 	pyqdc_top    = trunc(yslope*yqdc_top+yoffset);
 	pyqdc_bottom = trunc(yslope*yqdc_bottom+yoffset);
 
+	// ???
 	if(has_implant){
-
 		pxqdc_right  = px_r;
 		pxqdc_left   = px_l;
 		pyqdc_top    = py_t;
 		pyqdc_bottom = py_b;
-  
 	}
-
 
 	xcal  = yqdc_top;
 	ycal  = -1*(xqdc_right-offset_mirror)+offset_mirror;
@@ -822,7 +825,10 @@ bool PspmtProcessor::Process(RawEvent &event){
 		qdcd_cal = calib[p1d]*qdcd/100;
 		trmax    = calib[p1d]*max_dynode/10;
 	}
- 
+
+	if(p1d >=0 && p1d < 576) {
+		qdcCalib=(qdcs/40.*pixelCalib[p1d]); 
+	}
   
 	////////////////////////////
  
@@ -875,7 +881,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D, 1931
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
-		plot(DD_P1D_QDCSUM,(qdcCalib=qdcs/40.*pixelCalib[p1d]),p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
 	}
   
@@ -887,22 +892,25 @@ bool PspmtProcessor::Process(RawEvent &event){
 	if(has_implant && qdcCalib > 0) {
 		implantRec[p1d].energy = qdcCalib; 
 		implantRec[p1d].time = pspmttime; 
+		plot(34, qdcCalib, p1d); // 1934
 		// remove decay events
 		for(int i = 0; i < 2; i++) {
 			decayRec[i][p1d].Clear();
 		}
 	} else if(has_decay && qdcCalib > 0) {
+		plot(33, qdcCalib, p1d); // 1933, decay only
 		if(implantRec[p1d].Is_Filled()) { // the preceding ion has been found
 			if(!decayRec[0][p1d].Is_Filled()) {
 				decayRec[0][p1d].time = pspmttime;
 				decayRec[0][p1d].energy = qdcCalib;
 				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
 				// plot 1946-1949
-				if(has511keV) {
+				if(!has511keV) {
 					plot(46, qdcCalib, timeDiffImplant*1e6); 
-					plot(47, qdcCalib, timeDiffImplant*1e5); 
-					plot(48, qdcCalib, timeDiffImplant*1e3); 
-					plot(49, qdcCalib, timeDiffImplant*1e2);
+					plot(47, qdcCalib, timeDiffImplant*1e5);
+					plot(48, qdcCalib, timeDiffImplant*1e4);
+					plot(49, qdcCalib, timeDiffImplant*1e3); 
+					plot(50, qdcCalib, timeDiffImplant*1e2);
 				}
 			} else if(!decayRec[1][p1d].Is_Filled()) {
 				decayRec[1][p1d].time = pspmttime;
