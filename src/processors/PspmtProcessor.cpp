@@ -252,6 +252,9 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
 	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
 	
+	// for curiosity
+	DeclareHistogram2D(51, 2048, 1024, "P1D vs. qdcCalib 4 keV/ch, all 4 anodes fires"); // 1951
+
 	// correlation matrix
 	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 0.5 ms"); // 1966
     
@@ -877,6 +880,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_QDC_REG,qdcd_cal,regression);      // QDC vs Reg1
 		plot(DD_QDC_REG1,qdcd_cal,regression);     // QDC vs Reg1
 		plot(DD_QDC_REG2,qdcd_cal,regression2);    // QDC vs Reg2
+
+		// for curiosity
+		plot(51, qdcCalib, p1d); // 1951
     
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
 		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D, 1931
