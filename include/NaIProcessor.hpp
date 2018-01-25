@@ -8,6 +8,8 @@
 
 #include "EventProcessor.hpp"
 
+extern bool has511keV, has511keVBarrel, has511keVPlug; 
+
 class NaIProcessor : public EventProcessor
 {
 public:

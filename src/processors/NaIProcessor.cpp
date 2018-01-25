@@ -11,6 +11,12 @@ using std::string;
 using std::vector;
 using namespace dammIds::nai;
 
+/* by Yongchi Xiao
+ * a notice for PspmtProcessor on 511 keV gamma-ray
+ */
+bool has511keV, has511keVBarrel, has511keVPlug;
+const double fwhm[9] = {0, 0, 0, 0, 132.21, 187.28, 142.00, 146.5, 52.55}; 
+
 namespace dammIds {
   namespace nai {	
     const int DD_POSENE = 0;
@@ -49,6 +55,10 @@ void NaIProcessor::DeclarePlots(void)
 bool NaIProcessor::PreProcess(RawEvent &event) {
 	if (!EventProcessor::Process(event)) 
 		return false;
+
+	has511keV = false;
+	has511keVBarrel = false;
+	has511keVPlug = false;
 	
 	static const vector<ChanEvent*> &naiEvents = sumMap["nai"]->GetList();
 	data.Clear();
@@ -65,6 +75,12 @@ bool NaIProcessor::PreProcess(RawEvent &event) {
 		using std::cout;
 		using std::endl; 
 		
+		// check 511 keV gamma
+		if(abs(calEnergy - 511) < fwhm[number]/2.) {
+			has511keV = true; 
+			has511keVBarrel = true; 
+		}
+
 		if(number < 4 ) {
 			sumPlugEnergy += calEnergy; 
 		} 
@@ -73,7 +89,13 @@ bool NaIProcessor::PreProcess(RawEvent &event) {
 	if(sumPlugEnergy > 0) {
 		sumPlugEnergy *= 0.2687; // calibrated to 1 keV/ch
 		plot(DD_POSENE+9, sumPlugEnergy); // 2039
+		// check 511 keV gamma
+		if(abs(sumPlugEnergy - 511) < fwhm[8]/2.) {
+			has511keV = true;
+			has511keVPlug = true; 
+		}
 	}
+
 
 	EndProcess();
 	return(true);

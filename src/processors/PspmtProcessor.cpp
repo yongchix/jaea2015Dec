@@ -13,7 +13,7 @@
 #include "Messenger.hpp"
 #include "JAEACorrelator.hpp"
 #include "DetectorDriver.hpp"
-
+#include "NaIProcessor.hpp"
 using namespace std;
 using namespace dammIds::pspmt;
 
@@ -228,7 +228,7 @@ void PspmtProcessor::DeclarePlots(void) {
     
     // Energy resolutions 30-
     DeclareHistogram2D(DD_P1D_CHANNEL, energyBins,Bins, "Ch vs Dynode EChannel");
-    DeclareHistogram2D(DD_P1D_TRACE, energyBins,Bins, "Ch vs Dynode ETrace");
+    DeclareHistogram2D(DD_P1D_TRACE, energyBins,Bins, "Ch vs Dynode ETrace"); // 1931
     DeclareHistogram2D(DD_P1D_QDC, energyBins,1024, "Ch vs Dynode QDC scaled by 10"); // 1932
     DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "Ch vs QDCSum scaled by 40"); // 1933
     // Energy res by correlation
@@ -250,7 +250,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
 	// correlation matrix
-	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 2 ms"); // 1966
+	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 0.5 ms"); // 1966
     
 	// commented out by YX
 	/*
@@ -294,7 +294,7 @@ void PspmtProcessor::DeclarePlots(void) {
     // Trace
    
     DeclareHistogram2D(DD_SINGLE_TRACE, traceBins, traceBins2,"Single traces");
-    DeclareHistogram2D(DD_DOUBLE_TRACE, traceBins, traceBins2,"Pileup traces");
+    DeclareHistogram2D(DD_DOUBLE_TRACE, traceBins, traceBins2,"Pileup traces"); // 1978
     DeclareHistogram2D(DD_TRACE_POS, traceBins, traceBins2,"Position traces");
     DeclareHistogram2D(DD_TRACE_DYNODE, traceBins, traceBins2,"Dynode traces");
 
@@ -873,7 +873,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_QDC_REG2,qdcd_cal,regression2);    // QDC vs Reg2
     
 		plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
-		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D
+		plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D, 1931
 		plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
 		plot(DD_P1D_QDCSUM,(qdcCalib=qdcs/40.*pixelCalib[p1d]),p1d);           // QDCsum cs P1D, 1933
 		plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
@@ -898,10 +898,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 				decayRec[0][p1d].energy = qdcCalib;
 				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
 				// plot 1946-1949
-				plot(46, qdcCalib, timeDiffImplant*1e6); 
-				plot(47, qdcCalib, timeDiffImplant*1e5); 
-				plot(48, qdcCalib, timeDiffImplant*1e3); 
-				plot(49, qdcCalib, timeDiffImplant*1e2);
+				if(has511keV) {
+					plot(46, qdcCalib, timeDiffImplant*1e6); 
+					plot(47, qdcCalib, timeDiffImplant*1e5); 
+					plot(48, qdcCalib, timeDiffImplant*1e3); 
+					plot(49, qdcCalib, timeDiffImplant*1e2);
+				}
 			} else if(!decayRec[1][p1d].Is_Filled()) {
 				decayRec[1][p1d].time = pspmttime;
 				decayRec[1][p1d].energy = qdcCalib;
@@ -932,7 +934,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_SINGLE_TRACE,ittr-traceD.begin(),traceNum,*ittr);
 		plot(DD_TRACE_DYNODE,ittr-traceD.begin(),traceNumDynode,*ittr);
 		if(has_pileup){
-			plot(DD_DOUBLE_TRACE,ittr-traceD.begin(),traceNumSecond,*ittr);
+			plot(DD_DOUBLE_TRACE,ittr-traceD.begin(),traceNumSecond,*ittr); // 1978, dynode double trace
 		}
      
 		if(has_implant){
