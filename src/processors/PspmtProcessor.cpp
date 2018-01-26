@@ -895,54 +895,59 @@ bool PspmtProcessor::Process(RawEvent &event){
 	/* by Yongchi Xiao
 	 * make correlations beyond this point 
 	 */
-	double timeDiffImplant = 0;
-	double timeDiffDecay = 0;  
-	if(has_implant && qdcCalib > 0) {
-		implantRec[p1d].energy = qdcCalib; 
-		implantRec[p1d].time = pspmttime; 
-		plot(34, qdcCalib, p1d); // 1934
-		// remove decay events
-		for(int i = 0; i < 2; i++) {
-			decayRec[i][p1d].Clear();
+	/* by Yongchi Xiao, 01/26/2018
+	 * blank out border and corner pixels, check correlations in the center pixels
+	 * Simply cut off the first and last third pixels (1d)
+	 */ 
+	if(abs(p1d - 288) <=96 ) {
+		double timeDiffImplant = 0;
+		double timeDiffDecay = 0;  
+		if(has_implant && qdcCalib > 0) {
+			implantRec[p1d].energy = qdcCalib; 
+			implantRec[p1d].time = pspmttime; 
+			plot(34, qdcCalib, p1d); // 1934
+			// remove decay events
+			for(int i = 0; i < 2; i++) {
+				decayRec[i][p1d].Clear();
+			}
+		} else if(has_decay && qdcCalib > 0) {
+			plot(33, qdcCalib, p1d); // 1933, decay only
+			if(implantRec[p1d].Is_Filled()) { // the preceding ion has been found
+				if(!decayRec[0][p1d].Is_Filled()) {
+					decayRec[0][p1d].time = pspmttime;
+					decayRec[0][p1d].energy = qdcCalib;
+					timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+					// plot 1946-1949
+					if(!has511keV) {
+						plot(46, qdcCalib, timeDiffImplant*1e6); 
+						plot(47, qdcCalib, timeDiffImplant*1e5);
+						plot(48, qdcCalib, timeDiffImplant*1e4);
+						plot(49, qdcCalib, timeDiffImplant*1e3); 
+						plot(50, qdcCalib, timeDiffImplant*1e2);
+					}
+				} else if(!decayRec[1][p1d].Is_Filled()) {
+					decayRec[1][p1d].time = pspmttime;
+					decayRec[1][p1d].energy = qdcCalib;
+					timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+					// plot 1946-1949
+					/*
+					  plot(46, qdcCalib, timeDiff*1e6); 
+					  plot(47, qdcCalib, timeDiff*1e5); 
+					  plot(48, qdcCalib, timeDiff*1e3); 
+					  plot(49, qdcCalib, timeDiff*1e2); 
+					*/
+					/* Find correlated decays: 
+					 * T1/2 for 109Xe: 13 ms
+					 * T1/2 for 105Te: 0.62 us
+					 */
+					if((decayRec[1][p1d].time - decayRec[0][p1d].time)*Globals::get()->clockInSeconds() < 0.5e-3
+					   && (decayRec[1][p1d].time - decayRec[0][p1d].time) > 0) {
+						plot(66, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
+					}
+				} 
+			}
 		}
-	} else if(has_decay && qdcCalib > 0) {
-		plot(33, qdcCalib, p1d); // 1933, decay only
-		if(implantRec[p1d].Is_Filled()) { // the preceding ion has been found
-			if(!decayRec[0][p1d].Is_Filled()) {
-				decayRec[0][p1d].time = pspmttime;
-				decayRec[0][p1d].energy = qdcCalib;
-				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
-				// plot 1946-1949
-				if(!has511keV) {
-					plot(46, qdcCalib, timeDiffImplant*1e6); 
-					plot(47, qdcCalib, timeDiffImplant*1e5);
-					plot(48, qdcCalib, timeDiffImplant*1e4);
-					plot(49, qdcCalib, timeDiffImplant*1e3); 
-					plot(50, qdcCalib, timeDiffImplant*1e2);
-				}
-			} else if(!decayRec[1][p1d].Is_Filled()) {
-				decayRec[1][p1d].time = pspmttime;
-				decayRec[1][p1d].energy = qdcCalib;
-				timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
-				// plot 1946-1949
-				/*
-				plot(46, qdcCalib, timeDiff*1e6); 
-				plot(47, qdcCalib, timeDiff*1e5); 
-				plot(48, qdcCalib, timeDiff*1e3); 
-				plot(49, qdcCalib, timeDiff*1e2); 
-				*/
-				/* Find correlated decays: 
-				 * T1/2 for 109Xe: 13 ms
-				 * T1/2 for 105Te: 0.62 us
-				 */
-				if((decayRec[1][p1d].time - decayRec[0][p1d].time)*Globals::get()->clockInSeconds() < 0.5e-3
-				   && (decayRec[1][p1d].time - decayRec[0][p1d].time) > 0) {
-					plot(66, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
-				}
-			} 
-		}
-	}
-
+	} // end of gating on pixels
   
 	/********************************* Below are for traces **************************************/    
   
