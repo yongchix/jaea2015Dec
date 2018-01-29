@@ -201,21 +201,33 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram1D(D_RAW3, energyBins, "Pspmt3 Raw");
     DeclareHistogram1D(D_RAW4, energyBins, "Pspmt4 Raw");
     DeclareHistogram1D(D_RAWD, energyBins, "Pspmt Dynode");
+	/* commented out by YX */
+	/*
     DeclareHistogram1D(D_SUM,  energyBins, "Pspmt Sum");
     DeclareHistogram2D(DD_POS1_RAW, mapBins, mapBins, "Pspmt Pos1 Raw"); // 1906
     DeclareHistogram2D(DD_POS2_RAW, mapBins, mapBins, "Pspmt Pos2 Raw"); // 1907
     DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
     DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
+	*/
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE3, energyBins, "Energy3 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE4, energyBins, "Energy4 from trace");
     DeclareHistogram1D(D_ENERGY_TRACED, energyBins, "EnergyD from trace");
     DeclareHistogram1D(D_ENERGY_TRACESUM,  energyBins, "Pspmt Sum");
+	// pspmt pos from trace filtered energy, 1916-1919
+	/*
     DeclareHistogram2D(DD_POS1_RAW_TRACE, mapBins, mapBins, "Pspmt pos Raw by Trace1");
     DeclareHistogram2D(DD_POS2_RAW_TRACE, mapBins, mapBins, "Pspmt pos Raw by Trace2");
     DeclareHistogram2D(DD_POS1_TRACE, posBins, posBins, "Pspmt pos by Trace1");
     DeclareHistogram2D(DD_POS2_TRACE, posBins, posBins, "Pspmt pos by Trace2");
+	*/
+	// by YX
+	DeclareHistogram2D(16, 1024, 1024, "MAP by QDC"); // 1916
+	DeclareHistogram2D(17, 1024, 1024, "MAP by QDC2"); // 1917
+	DeclareHistogram2D(18, 32, 32, "MAP by QDC, truncated"); // 1918
+	DeclareHistogram2D(19, 32, 32, "MAP by QDC2, truncated"); // 1919
+
     DeclareHistogram1D(D_QDC_TRACE1, energyBins, "Energy1 from QDC scaled by 10");
     DeclareHistogram1D(D_QDC_TRACE2, energyBins, "Energy2 from QDC scaled by 10");
     DeclareHistogram1D(D_QDC_TRACE3, energyBins, "Energy3 from QDC scaled by 10");
@@ -374,7 +386,9 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
     
     double pxright=0,pxleft=0,pytop=0,pybottom=0;
     double pxtre_r=0,pxtre_l=0,pytre_t=0,pytre_b=0;
-   
+	// add by YX
+	double pxqdc_r=0,pxqdc_l=0,pyqdc_t=0,pyqdc_b=0;
+
     double diff;
  
     // tentatively local params //
@@ -396,13 +410,11 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
         double baseline;
         double qdc;	
 	
-		if(trace.HasValue("filterenergy")){
-	  
+		if(trace.HasValue("filterEnergy")){	  
 			trace_time    = trace.GetValue("filterTime");
 			trace_energy  = trace.GetValue("filterEnergy");
 			baseline      = trace.DoBaseline(2,20);
 			qdc           = trace.DoQDCSimple(20,140);
-	  
 			if(ch==0){
                 qdc1 = qdc/10;
                 tre1 = trace_energy;
@@ -432,6 +444,8 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
 			}
         }
 
+		// below is dealing with on-board energy
+		/*
         if(ch==0){
             q1 = calEnergy;
             plot(D_RAW1,q1);
@@ -448,27 +462,45 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
             qd = calEnergy;
             plot(D_RAWD,qd);
         }
-        
+		*/
+        /*
         if(q1>0 && q2>0 && q3>0 && q4>0){
-			/* q2     q1
-			 * 
-			 * 
-			 * q3     q4
-			 */
-			qtop    = (q1+q2)/2;
+		// q2     q1
+		// 
+		// 
+		// q3     q4
+		//
+		// energy on the border
+		    qtop    = (q1+q2)/2;
 			qleft   = (q2+q3)/2;
 			qbottom = (q3+q4)/2;
 			qright  = (q4+q1)/2;
-          
+			// deduce the position          
             qsum    = (q1+q2+q3+q4)/2;
             xright  = (qright/qsum)*512+100;
             xleft   = (qleft/qsum)*512+100;
             ytop    = (qtop/qsum)*512+100;
             ybottom = (qbottom/qsum)*512+100;
             plot(D_SUM,qsum);
-
         }
-        
+
+        if(q1>threshold && q2>threshold && q3>threshold && q4>threshold ){
+            pxleft   = trunc(slope*xleft-intercept);
+            pxright  = trunc(slope*xright-intercept);
+            pytop    = trunc(slope*ytop-intercept);
+            pybottom = trunc(slope*ybottom-intercept);
+            
+            plot(DD_POS1_RAW,xright,ytop); // 1906
+            plot(DD_POS2_RAW,xleft,ybottom); // 1907
+            plot(DD_POS1,pxright,pytop); // 1908
+            plot(DD_POS2,pxleft,pybottom); // 1909
+	    
+		}
+		*/
+		
+
+		// below are energy from in-code filters        
+		/*
         if(tre1>0 && tre2>0 && tre3>0 && tre4>0 ){
             qtre_t=(tre1+tre2)/2;
             qtre_l=(tre2+tre3)/2;
@@ -486,44 +518,43 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
             pytre_t = trunc(slope*ytre_t-intercept);
             pytre_b = trunc(slope*ytre_b-intercept);
                         
-            plot(D_ENERGY_TRACESUM,qtre_s);
+            plot(D_ENERGY_TRACESUM,qtre_s); // 1915
 	    
             if(tre1>threshold && tre2>threshold && tre3>threshold && tre4>threshold ){
-				plot(DD_POS1_RAW_TRACE,xtre_r,ytre_t);
+				plot(DD_POS1_RAW_TRACE,xtre_r,ytre_t); // 1916
 				plot(DD_POS2_RAW_TRACE,xtre_l,ytre_b);
 				plot(DD_POS1_TRACE,pxtre_r,pytre_t);
 				plot(DD_POS2_TRACE,pxtre_l,pytre_b);
             }    
         }
+		*/
         
-        if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0 ){
-            qqdc_t=(qdc1+qdc2)/2;
-            qqdc_l=(qdc2+qdc3)/2;
-            qqdc_b=(qdc3+qdc4)/2;
-            qqdc_r=(qdc4+qdc1)/2;
-            qqdc_s=(qqdc_t+qqdc_l+qqdc_b+qqdc_r)/2;
-            
-            xqdc_r=(qqdc_r/qqdc_s)*512+100;
-            xqdc_l=(qqdc_l/qqdc_s)*512+100;
-            yqdc_t=(qqdc_t/qqdc_s)*512+100;
-            yqdc_b=(qqdc_b/qqdc_s)*512+100;
+		// below are processing of QDC
+		if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0 ){
+            qqdc_t = (qdc1+qdc2)/2;
+            qqdc_l = (qdc2+qdc3)/2;
+            qqdc_b = (qdc3+qdc4)/2;
+            qqdc_r = (qdc4+qdc1)/2;
+            qqdc_s = (qqdc_t+qqdc_l+qqdc_b+qqdc_r)/2;
+			
+            xqdc_r = (qqdc_r/qqdc_s)*512+100;
+            xqdc_l = (qqdc_l/qqdc_s)*512+100;
+            yqdc_t = (qqdc_t/qqdc_s)*512+100;
+            yqdc_b = (qqdc_b/qqdc_s)*512+100;
 
-			plot(D_ENERGY_TRACESUM,qqdc_s);
+			pxqdc_r = trunc(slope*xqdc_r-intercept);
+            pxqdc_l = trunc(slope*xqdc_l-intercept);
+            pyqdc_t = trunc(slope*yqdc_t-intercept);
+            pyqdc_b = trunc(slope*yqdc_b-intercept);
+            
+			// by YX
+			plot(16, xqdc_r, yqdc_t); // 1916
+			plot(17, xqdc_l, yqdc_b); // 1917
+			plot(18, pxqdc_r, pyqdc_t); // 1918
+			plot(19, pxqdc_l, pyqdc_b); // 1919
         }
         
-        if(q1>threshold && q2>threshold && q3>threshold && q4>threshold ){
-            pxleft   = trunc(slope*xleft-intercept);
-            pxright  = trunc(slope*xright-intercept);
-            pytop    = trunc(slope*ytop-intercept);
-            pybottom = trunc(slope*ybottom-intercept);
-            
-            plot(DD_POS1_RAW,xright,ytop); // 1906
-            plot(DD_POS2_RAW,xleft,ybottom); // 1907
-            plot(DD_POS1,pxright,pytop); // 1908
-            plot(DD_POS2,pxleft,pybottom); // 1909
-	    
-		}
-    } // end of channel event
+    } // end of one channel event
     
     EndProcess();
     return(true);
@@ -558,7 +589,10 @@ bool PspmtProcessor::Process(RawEvent &event){
 	int  mult_pspmt = event.GetSummary("pspmt",true)->GetMult();
 	int  mult_mwpc  = event.GetSummary("mcp",true)->GetMult();
 	int  mult_nai   = event.GetSummary("nai",true)->GetMult();
-  
+	// by YX
+	bool canProcess = false;
+	
+	/*  
 	double id[600];
 	double res;
 	double peak[600];
@@ -576,7 +610,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 			calib[i]=0;
 		}
 	}
-  
+	*/
+
 	if(mult_pspmt==5){
 		has_pspmt=true;
 	}
@@ -712,8 +747,7 @@ bool PspmtProcessor::Process(RawEvent &event){
    
  
 	for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
-		 it != pspmtEvents.end(); it++) {
-        
+		 it != pspmtEvents.end(); it++) {        
 		ChanEvent *chan   = *it;
 		int ch            = chan->GetChanID().GetLocation();
 		pspmtch           = ch;
@@ -738,8 +772,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 			traceD = chan->GetTrace();
 		}
     
-		if(trace.HasValue("filterEnergy")){
-          
+		if(trace.HasValue("filterEnergy")){          
 			double trace_energy;
 			double trace_time;
 			double baseline;
@@ -750,7 +783,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 			baseline      = trace.DoBaseline(2,20);
 			qdc           = trace.DoQDCSimple(20,140);
 			numpulse      = trace.GetValue("numPulses");
-     
+
 			if(ch==0){
 				qdc1 = qdc;
 				tre1 = trace_energy;
@@ -805,13 +838,19 @@ bool PspmtProcessor::Process(RawEvent &event){
 	xqdc_left   = (qdc_left/qdcs)*512+100;
 	yqdc_top    = (qdc_top/qdcs)*512+100;
 	yqdc_bottom = (qdc_bottom/qdcs)*512+100;
-    
+
+	/* // YX commented below out since it does not seem reliable    
 	pxqdc_right  = trunc(xslope*xqdc_right+xoffset);
 	pxqdc_left   = trunc(xslope*xqdc_left+xoffset);
 	pyqdc_top    = trunc(yslope*yqdc_top+yoffset);
 	pyqdc_bottom = trunc(yslope*yqdc_bottom+yoffset);
+	*/
+	pxqdc_right = trunc(slope*xqdc_right-intercept);
+	pxqdc_left = trunc(slope*xqdc_left-intercept);
+	pyqdc_top = trunc(slope*yqdc_top-intercept);
+	pyqdc_bottom = trunc(slope*yqdc_bottom-intercept);
 
-	// ???
+	// ??? Don't understand why
 	/*
 	if(has_implant){
 		pxqdc_right  = px_r;
@@ -825,14 +864,20 @@ bool PspmtProcessor::Process(RawEvent &event){
 	ycal  = -1*(xqdc_right-offset_mirror)+offset_mirror;
 	xcal2 = -1*(yqdc_bottom-offset_mirror2)+offset_mirror2;
 	ycal2 = xqdc_left;
+	
 	p1d     = pxqdc_right + 24*pyqdc_top;
+
+	/*
 	if(p1d>=0 && p1d<576){
 		qdcd_cal = calib[p1d]*qdcd/100;
 		trmax    = calib[p1d]*max_dynode/10;
 	}
-
+	*/ 
+	
+	// by YX
 	if(p1d >=0 && p1d < 576) {
 		qdcCalib=(qdcs/40.*pixelCalib[p1d]); 
+		canProcess = true; 
 	}
   
 	////////////////////////////
@@ -843,9 +888,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 
 	/* Decay without veto */  
 	if(has_decay && !has_veto){
-    
 		//    plot(DD_POS_RAW_DECAY,xright,ytop); // MAP Raw 
-		plot(DD_MAP_DECAY,xcal,ycal); // MAP
+		plot(DD_MAP_DECAY,xcal,ycal); // MAP, 1940
 		plot(DD_QDC_REG_DECAY,qdcd_cal,regression); // QDC vs Reg1
 		plot(DD_QDC_REG2_DECAY,qdcd_cal,regression2); // QDC vs Reg2
     
@@ -854,22 +898,24 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_REG12_DECAY,regression,regression2); // Reg1 vs Reg2
 		plot(DD_ENE_QDC_DECAY,qd,qdcd_cal); // ChE vs QDC
     
-		plot(DD_MAP_DECAY_CHE,xright,ytop);
+		plot(DD_MAP_DECAY_CHE,xright,ytop);// 1942
 		plot(DD_TRACEMAX_P1D,max_dynode,p1d);
+		/* // YX commented this out because trmax is no longer assigned a value
 		plot(DD_TRACEMAXCAL_P1D,trmax,p1d);
 		plot(DD_TRMAX_QDC,trmax,qdcd_cal);
+		*/
 	}
 	/* Implant */
 	if(has_implant){
 		// plot(DD_POS_RAW_IMPLANT,xright,ytop); // MAP Raw
-		plot(DD_MAP_IMPLANT,xcal,ycal); // MAP
+		plot(DD_MAP_IMPLANT,xcal,ycal); // MAP, 1939
 		plot(DD_QDC_REG_IMPLANT,qdcd_cal,regression); // QDC vs Reg1
 		plot(DD_QDC_REG2_IMPLANT,qdcd_cal,regression2); // QDC vs Reg1
 		plot(DD_P1D_IMPLANT_CHE,qd,p1d); // ChE vs P1D
 		plot(DD_P1D_IMPLANT_QDC,qdcd_cal,p1d); // QDC vs P1D
 		plot(DD_REG12_IMPLANT,regression,regression2); // Reg1 vs Reg2
 		plot(DD_ENE_QDC_IMPLANT,qd,qdcd_cal); // ChE cs QDC Implant
- 		plot(DD_MAP_IMPLANT_CHE,xright,ytop);
+ 		plot(DD_MAP_IMPLANT_CHE,xright,ytop); // 1941, please compare it to 1939
    
 	}
   
@@ -898,8 +944,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 	/* by Yongchi Xiao, 01/26/2018
 	 * blank out border and corner pixels, check correlations in the center pixels
 	 * Simply cut off the first and last third pixels (1d)
-	 */ 
-	if(abs(p1d - 288) <=96 ) {
+	 */
+	if(canProcess) { 
+	//	if(abs(p1d - 288) <=96 ) {
 		double timeDiffImplant = 0;
 		double timeDiffDecay = 0;  
 		if(has_implant && qdcCalib > 0) {
