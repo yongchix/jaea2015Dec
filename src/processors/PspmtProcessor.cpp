@@ -945,8 +945,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 	 * blank out border and corner pixels, check correlations in the center pixels
 	 * Simply cut off the first and last third pixels (1d)
 	 */
-	if(canProcess) { 
+	//	if(canProcess) { 
 	//	if(abs(p1d - 288) <=96 ) {
+	if(abs(pxqdc_right - 12) <= 4 && abs(pyqdc_top - 12) <= 4) {
 		double timeDiffImplant = 0;
 		double timeDiffDecay = 0;  
 		if(has_implant && qdcCalib > 0) {
