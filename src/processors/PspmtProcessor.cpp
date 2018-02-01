@@ -253,9 +253,11 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,p1dBins, "[Decay] ch vs E(QDC)"); // 1938
 
 	// by Yongchi
-	DeclareHistogram2D(39, 32, 32, "Decay Map no veto"); // 1939
 	DeclareHistogram2D(40, 32, 32, "Implant Map no veto"); // 1940
-	DeclareHistogram2D(41, 32, 32, "Decay Map w/. veto"); // 1941
+	DeclareHistogram1D(41, 1024, "10*log(Dt/1.e-9, Central Implants"); // 1941
+	DeclareHistogram1D(42, 1024, "10*log(Dt/1.e-9, Central Decays"); // 1942	
+	DeclareHistogram1D(43, 1024, "10*log(Dt/1.e-9, Border Implants"); // 1943
+	DeclareHistogram1D(44, 1024, "10*log(Dt/1.e-9, Border Decays"); // 1944	
 	    
     /*
     DeclareHistogram2D(DD_MAP_IMPLANT, mapBins, mapBins, "2D MAP Implant direction calib."); // 1939
@@ -312,10 +314,11 @@ void PspmtProcessor::DeclarePlots(void) {
 
 
     // Trace Max calibration 
+	/*
     DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, p1dBins,"Decay TraceMax vs P1D"); // 1943
     DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, p1dBins,"Decay TraceMaxCal vs P1D"); // 1944
     DeclareHistogram2D(DD_TRMAX_QDC, energyBins, energyBins,"Decay TraceMaxCal vs QDCcal"); // 1945
-
+	*/
     // Trace
    
     DeclareHistogram2D(DD_SINGLE_TRACE, traceBins, traceBins2,"Single traces");
@@ -855,17 +858,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 		}
 		plot(DD_P1D_QDCCAL,qdcd_cal,p1d);  // QDC vs P1D
 
-
-		/* Decay without veto */  
-		if(has_decay) {
-			if(!has_veto)
-				plot(39, pxqdc_right, pyqdc_top); // 1939
-			else {
-				plot(41, pxqdc_right, pyqdc_top); // 1941
-			}
-		} else	if(has_implant) {
-			plot(40, pxqdc_right, pyqdc_top); // 1940		
-		}
 		/*
 		//    plot(DD_POS_RAW_DECAY,xright,ytop); // MAP Raw 
 		plot(DD_MAP_DECAY,xcal,ycal); // MAP, 1940
@@ -935,6 +927,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 			double timeDiffImplant = 0;
 			double timeDiffDecay = 0;  
 			if(has_implant && qdcCalib > 0) {
+				plot(40, pxqdc_right, pyqdc_top); // 1940
 				implantRec[p1d].energy = qdcCalib; 
 				implantRec[p1d].time = pspmttime; 
 				plot(34, qdcCalib, p1d); // 1934
@@ -950,7 +943,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 						decayRec[0][p1d].energy = qdcCalib;
 						timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
 						// plot 1946-1949
-						//						if(!has511keV) {
 						if(!has_veto) {
 							plot(46, qdcCalib, timeDiffImplant*1e6); 
 							plot(47, qdcCalib, timeDiffImplant*1e5);
@@ -963,13 +955,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 						decayRec[1][p1d].time = pspmttime;
 						decayRec[1][p1d].energy = qdcCalib;
 						timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
-						// plot 1946-1949
-						/*
-						  plot(46, qdcCalib, timeDiff*1e6); 
-						  plot(47, qdcCalib, timeDiff*1e5); 
-						  plot(48, qdcCalib, timeDiff*1e3); 
-						  plot(49, qdcCalib, timeDiff*1e2); 
-						*/
 						/* Find correlated decays: 
 						 * T1/2 for 109Xe: 13 ms
 						 * T1/2 for 105Te: 0.62 us
@@ -983,8 +968,38 @@ bool PspmtProcessor::Process(RawEvent &event){
 			}
 		} // end of gating on pixels
 
-		// central pixels only
-
+		/* Gate on central pixels only
+		 * to see the count rate of 
+		 * decays and implants
+		 */
+		if(canProcess) {
+			if(abs(pxqdc_right - 11.5) < 4 && abs(pyqdc_top - 11.5) < 4) {// central pixels
+				if(has_implant) {
+					if(implantRefTime[p1d] > 0) {
+						plot(41, 10*log((pspmttime - implantRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)); // 1941
+					} 
+					implantRefTime[p1d] = pspmttime; 
+				} else if(has_decay && !has_veto) {
+					if(decayRefTime[p1d] > 0) {
+						plot(42, 10*log((pspmttime - decayRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)); // 1942
+					}
+					decayRefTime[p1d] = pspmttime; 
+				}
+			} else { // border pixels
+				if(has_implant) {
+					if(implantRefTime[p1d] > 0) {
+						plot(43, 10*log((pspmttime- implantRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)); // 1943
+					} 
+					implantRefTime[p1d] = pspmttime; 
+				} else if(has_decay && !has_veto) {
+					if(decayRefTime[p1d] > 0) {
+						plot(44, 10*log((pspmttime- decayRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)); // 1944
+					}
+					decayRefTime[p1d] = pspmttime; 
+				}
+			}
+		}
+		
 	}	
 	/********************************* Below are for traces **************************************/    
   
