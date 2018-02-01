@@ -209,11 +209,7 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
     DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
 	*/
-	DeclareHistogram1D(6, 2048, "Central Implants intervals, 100*log(Dt)"); // 1906
-	DeclareHistogram1D(7, 2048, "Central Decay intervals, 100*log(Dt)"); // 1907	
-	DeclareHistogram1D(8, 2048, "Border Implants intervals, 100*log(Dt)"); // 1908
-	DeclareHistogram1D(9, 2048, "Border Decay intervals, 100*log(Dt)"); // 1909
-
+	DeclareHistogram2D(6, 2048, 1024, "P1D vs. Correlated decay E. 4 keV/ch"); // 1906
 
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
@@ -961,6 +957,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 							plot(48, qdcCalib, timeDiffImplant*1e4);
 							plot(49, qdcCalib, timeDiffImplant*1e3); 
 							plot(50, qdcCalib, timeDiffImplant*1e2);
+							plot(6, qdcCalib, p1d); // 1906
 						}
 					} else if(!decayRec[1][p1d].Is_Filled()) {
 						decayRec[1][p1d].time = pspmttime;
@@ -987,27 +984,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		} // end of gating on pixels
 
 		// central pixels only
-		if(canProcess & !has_veto) {
-			if(abs(pxqdc_right - 12) <= 4 && abs(pyqdc_top - 12) <= 4) { // central pixels
-				if(implantRefTime[p1d] > 0 && has_implant) {
-					plot(6, log((pspmttime - implantRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)*10); // 1906 
-				}
-				implantRefTime[p1d] = pspmttime; 
-				if(decayRefTime[p1d] > 0 && has_decay) {
-					plot(7, log((pspmttime - decayRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)*10); // 1907
-				}
-				decayRefTime[p1d] = pspmttime;
-			} else { // other pixels
-				if(implantRefTime[p1d] > 0 && has_implant) {
-					plot(8, log((pspmttime - implantRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)*10); // 1908
-				}
-				implantRefTime[p1d] = pspmttime; 
-				if(decayRefTime[p1d] > 0 && has_decay) {
-					plot(9, log((pspmttime - decayRefTime[p1d])*Globals::get()->clockInSeconds()/1.e-9)*10); // 1909
-				}
-				decayRefTime[p1d] = pspmttime;
-			}
-		}
+
 	}	
 	/********************************* Below are for traces **************************************/    
   
