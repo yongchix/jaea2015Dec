@@ -209,8 +209,11 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
     DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
 	*/
-	DeclareHistogram2D(6, 2048, 1024, "P1D vs. Correlated decay E. 4 keV/ch"); // 1906
-
+	DeclareHistogram2D(6, 1024, 1024, "2-D map of all signals, reproduced - I"); // 1906
+	DeclareHistogram2D(7, 1024, 1024, "2-D map of all signals, reproduced - II"); // 1907
+	DeclareHistogram2D(8, 32, 32, "Pixelized  2-D map, reproduced - I"); // 1908
+	DeclareHistogram2D(9, 32, 32, "Pixelized 2-D map, reproduced - II"); // 1909
+	
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE3, energyBins, "Energy3 from trace");
@@ -254,10 +257,10 @@ void PspmtProcessor::DeclarePlots(void) {
 
 	// by Yongchi
 	DeclareHistogram2D(40, 32, 32, "Implant Map no veto"); // 1940
-	DeclareHistogram1D(41, 1024, "10*log(Dt/1.e-9, Central Implants"); // 1941
-	DeclareHistogram1D(42, 1024, "10*log(Dt/1.e-9, Central Decays"); // 1942	
-	DeclareHistogram1D(43, 1024, "10*log(Dt/1.e-9, Border Implants"); // 1943
-	DeclareHistogram1D(44, 1024, "10*log(Dt/1.e-9, Border Decays"); // 1944	
+	DeclareHistogram1D(41, 1024, "10*log(Dt/1.e-9), Central Implants"); // 1941
+	DeclareHistogram1D(42, 1024, "10*log(Dt/1.e-9), Central Decays"); // 1942	
+	DeclareHistogram1D(43, 1024, "10*log(Dt/1.e-9), Border Implants"); // 1943
+	DeclareHistogram1D(44, 1024, "10*log(Dt/1.e-9), Border Decays"); // 1944	
 	    
     /*
     DeclareHistogram2D(DD_MAP_IMPLANT, mapBins, mapBins, "2D MAP Implant direction calib."); // 1939
@@ -272,15 +275,15 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1948
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
 	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
+	DeclareHistogram2D(51, 2048, 1024, "P1D vs. Correlated decay E. 4 keV/ch"); // 1906 -> 1951
 	
-	// for curiosity
-	DeclareHistogram2D(51, 2048, 1024, "P1D vs. qdcCalib 4 keV/ch, all 4 anodes fires"); // 1951
+
 
 	// correlation matrix
-	DeclareHistogram2D(66, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch, 0.5 ms"); // 1966
+	DeclareHistogram2D(61, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch"); // 1961
     
 	// commented out by YX
-	/*
+	/* 1950-1957
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
 					   "2nd Ty,Ex (10ns/ch)(xkeV)"); // 1950
     DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 1, corrBins, corrBins, 
@@ -303,14 +306,15 @@ void PspmtProcessor::DeclarePlots(void) {
     */
 
   
-    // Time gated Decay P1D
+    // Time gated Decay P1D, 1970-1975
+	/*
     DeclareHistogram2D(DD_P1D_DECAY_TIME0, energyBins,p1dBins, "Decay time gated < 1  ms ");
     DeclareHistogram2D(DD_P1D_DECAY_TIME1, energyBins,p1dBins, "Decay time gated < 10 ms");
     DeclareHistogram2D(DD_P1D_DECAY_TIME2, energyBins,p1dBins, "Decay time gated < 100 ms");
     DeclareHistogram2D(DD_P1D_DECAY_TIME3, energyBins,p1dBins, "Decay time gated < 1 s");
     DeclareHistogram2D(DD_P1D_DECAY_TIME4, energyBins,p1dBins, "Decay time gated < 10 s");
     DeclareHistogram2D(DD_P1D_DECAY_TIME5, energyBins,p1dBins, "Decay time gated 5");
-
+	*/
 
 
     // Trace Max calibration 
@@ -342,7 +346,7 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_MWPC_NOPSPMT,Bins,Bins,"MWPC_PSPMT in NoPSPMT Processor");
     DeclareHistogram2D(DD_TRACE_E_QDC, energyBins, energyBins,"TraceE vs QDC");
 
-
+	/* 1996-2007
     DeclareHistogram2D(DD_CHE_REG, regBins, regBins,"ChE vs Regression");
     DeclareHistogram2D(DD_QDC_REG, regBins, regBins,"QDC vs Regression");
     
@@ -355,7 +359,7 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_REG12_DECAY, regBins, regBins,"Decay tau1 vs tau2");   
     DeclareHistogram2D(DD_QDC_REG1, regBins, regBins,"QDC vs REG1");   
     DeclareHistogram2D(DD_QDC_REG2, regBins, regBins,"QDC vs REG2");   
-   
+	*/
     
     DeclareHistogram2D(DD_TRACE_HIGHENE , traceBins, traceBins2,"Trace Decay High energy"); 
     DeclareHistogram2D(DD_TRACE_HIGHENE2, traceBins, traceBins2,"Trace Decay Alpha"); // 2009
@@ -606,26 +610,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 	// by YX
 	bool canProcess = false;
 	
-	/*  
-	double id[600];
-	double res;
-	double peak[600];
-	double trmax=0;
-	double calib[600];
-	double ampeak=5458.5;
-	ifstream ifs("calibprm.txt");
-  
-  
-	for(int i=0;i<600;i++){
-		ifs >> id[i] >> peak[i] >> res; 
-		if(peak[i]!=0){
-			calib[i] = abs(ampeak/peak[i]);
-		}else{
-			calib[i]=0;
-		}
-	}
-	*/
-
 	if(mult_pspmt==5){
 		has_pspmt=true;
 	}
@@ -647,15 +631,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 	if(has_nai){
 		has_veto    = true;  
 	}
-  
-	// Virtual switches for debugging //
-	//has_pspmt    = true;
-	//has_mwpc     = true;
-	//has_nai      = false;
-	//has_implant  = true;
-	//has_decay    = false;
-	//has_veto     = true;
-	// End of virtual switches  ///////
   
 	double q1=0,q2=0,q3=0,q4=0,qd=0;
 	double qtop=0,qleft=0,qbottom=0,qright=0;
@@ -696,8 +671,15 @@ bool PspmtProcessor::Process(RawEvent &event){
 	int p1d;
 	double threshold=0;
 	// For position calib at PSPMT
+	
+	//Original SG setting
 	double slope=0.0606;
 	double intercept=10.13;
+	
+	/*
+	double slope = 5.952381e-02; 
+	double intercept = 0; 
+	*/
 	// 
 	double xslope=0.0623;
 	double xoffset=-10.791;
@@ -857,62 +839,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 			canProcess = true; 
 		}
 		plot(DD_P1D_QDCCAL,qdcd_cal,p1d);  // QDC vs P1D
-
-		/*
-		//    plot(DD_POS_RAW_DECAY,xright,ytop); // MAP Raw 
-		plot(DD_MAP_DECAY,xcal,ycal); // MAP, 1940
-		plot(DD_QDC_REG_DECAY,qdcd_cal,regression); // QDC vs Reg1
-		plot(DD_QDC_REG2_DECAY,qdcd_cal,regression2); // QDC vs Reg2
-    
-		plot(DD_P1D_DECAY_CHE,qd,p1d); // ChE vs P1D, 1936
-		plot(DD_P1D_DECAY_QDC,qdcd_cal,p1d); // QDC vs P1D
-		plot(DD_REG12_DECAY,regression,regression2); // Reg1 vs Reg2
-		plot(DD_ENE_QDC_DECAY,qd,qdcd_cal); // ChE vs QDC
-    
-		plot(DD_MAP_DECAY_CHE,xright,ytop);// 1942
-		plot(DD_TRACEMAX_P1D,max_dynode,p1d);
-		*/
-		/* // YX commented this out because trmax is no longer assigned a value
-		   plot(DD_TRACEMAXCAL_P1D,trmax,p1d);
-		   plot(DD_TRMAX_QDC,trmax,qdcd_cal);
-		*/
-	
-
-		/* Implant */
-		/*
-		// plot(DD_POS_RAW_IMPLANT,xright,ytop); // MAP Raw
-		plot(DD_MAP_IMPLANT,xcal,ycal); // MAP, 1939
-		plot(DD_QDC_REG_IMPLANT,qdcd_cal,regression); // QDC vs Reg1
-		plot(DD_QDC_REG2_IMPLANT,qdcd_cal,regression2); // QDC vs Reg1
-		plot(DD_P1D_IMPLANT_CHE,qd,p1d); // ChE vs P1D
-		plot(DD_P1D_IMPLANT_QDC,qdcd_cal,p1d); // QDC vs P1D
-		plot(DD_REG12_IMPLANT,regression,regression2); // Reg1 vs Reg2
-		plot(DD_ENE_QDC_IMPLANT,qd,qdcd_cal); // ChE cs QDC Implant
-		plot(DD_MAP_IMPLANT_CHE,xright,ytop); // 1941, please compare it to 1939
-		*/
-
-  
-		/* Signal read from four corners */
-		//	if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0){
-		/*
-		  plot(DD_POS1_RAW_QDC,xqdc_right,yqdc_top); // MAP , noted by YX: very important!!!
-		  plot(DD_DIRCAL1,xcal,ycal);                // MAP dir. calib.
-		  plot(DD_POS1_QDC,pxqdc_right,pyqdc_top);   // Integer MAP
-		  plot(DD_CHE_REG,qd,regression);            // ChE vs Reg1
-		  plot(DD_QDC_REG,qdcd_cal,regression);      // QDC vs Reg1
-		  plot(DD_QDC_REG1,qdcd_cal,regression);     // QDC vs Reg1
-		  plot(DD_QDC_REG2,qdcd_cal,regression2);    // QDC vs Reg2
-
-		  // for curiosity
-		  //		plot(51, qdcCalib, p1d); // 1951
-    
-		  plot(DD_P1D_CHANNEL,qd,p1d);               // ChE vc P1D
-		  plot(DD_P1D_TRACE,tred,p1d);               // TraceE vs P1D, 1931
-		  plot(DD_P1D_QDC,qdcd_cal,p1d);             // QDC vs P1D
-		  plot(DD_REG12,regression,regression2);     // Reg1 vs Reg2
-		*/
-		
-		//	}
   
 		/* by Yongchi Xiao
 		 * make correlations beyond this point 
@@ -922,8 +848,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 		 * Simply cut off the first and last third pixels (1d)
 		 */
 		if(canProcess) { 
-			//	if(abs(p1d - 288) <=96 ) {
-			//	if(abs(pxqdc_right - 12) <= 4 && abs(pyqdc_top - 12) <= 4) {
+			// plot reproduced "raw" position, in analogy with 1916/1917
+			plot(6, xqdc_right - 100, yqdc_top - 100); // 1906
+			plot(7, xqdc_left - 100, yqdc_bottom - 100); // 1907
+			plot(8, pxqdc_right, pyqdc_top); // 1908
+			plot(9, pxqdc_left, pyqdc_bottom); // 1909
+		
 			double timeDiffImplant = 0;
 			double timeDiffDecay = 0;  
 			if(has_implant && qdcCalib > 0) {
@@ -949,7 +879,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 							plot(48, qdcCalib, timeDiffImplant*1e4);
 							plot(49, qdcCalib, timeDiffImplant*1e3); 
 							plot(50, qdcCalib, timeDiffImplant*1e2);
-							plot(6, qdcCalib, p1d); // 1906
+							plot(51, qdcCalib, p1d); // 1906 -> 1951
 						}
 					} else if(!decayRec[1][p1d].Is_Filled()) {
 						decayRec[1][p1d].time = pspmttime;
@@ -961,7 +891,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 						 */
 						if((decayRec[1][p1d].time - decayRec[0][p1d].time)*Globals::get()->clockInSeconds() < 0.5e-3
 						   && (decayRec[1][p1d].time - decayRec[0][p1d].time) > 0) {
-							plot(66, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
+							plot(61, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
 						}
 					} 
 				}
