@@ -681,10 +681,16 @@ bool PspmtProcessor::Process(RawEvent &event){
 	double intercept = 0; 
 	*/
 	// 
+	/*
 	double xslope=0.0623;
 	double xoffset=-10.791;
 	double yslope=0.0601;
 	double yoffset=-9.780;
+	*/
+	double slopeX = 0.0613976395; 
+	double slopeY = 0.05899345; 
+	double offsetX = -4.3216135359; 
+	double offsetY = -3.5612959407; 
 	double offset_mirror=341;
 	double offset_mirror2=365;
 	double QDCHIGHGATE=2000;
@@ -817,14 +823,15 @@ bool PspmtProcessor::Process(RawEvent &event){
 		qdc_right  = (qdc4+qdc1)/2;
 		qdcs=(qdc1+qdc2+qdc3+qdc4)/2;
 
-		xqdc_right  = (qdc_right/qdcs)*512+100;
-		xqdc_left   = (qdc_left/qdcs)*512+100;
-		yqdc_top    = (qdc_top/qdcs)*512+100;
-		yqdc_bottom = (qdc_bottom/qdcs)*512+100;
+		xqdc_right  = (qdc_right/qdcs)*512 + 100;
+		xqdc_left   = (qdc_left/qdcs)*512 + 100;
+		yqdc_top    = (qdc_top/qdcs)*512 + 100;
+		yqdc_bottom = (qdc_bottom/qdcs)*512 + 100;
 
-		pxqdc_right = trunc(slope*xqdc_right-intercept);
+		pxqdc_right = trunc(slopeX*(xqdc_right-100) + offsetX);
+		pyqdc_top = trunc(slopeY*(yqdc_top-100) + offsetY);
+
 		pxqdc_left = trunc(slope*xqdc_left-intercept);
-		pyqdc_top = trunc(slope*yqdc_top-intercept);
 		pyqdc_bottom = trunc(slope*yqdc_bottom-intercept);
 
 		xcal  = yqdc_top;
@@ -849,8 +856,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 		 */
 		if(canProcess) { 
 			// plot reproduced "raw" position, in analogy with 1916/1917
-			plot(6, xqdc_right - 100, yqdc_top - 100); // 1906
-			plot(7, xqdc_left - 100, yqdc_bottom - 100); // 1907
+			plot(6, xqdc_right  , yqdc_top  ); // 1906
+			plot(7, xqdc_left  , yqdc_bottom  ); // 1907
 			plot(8, pxqdc_right, pyqdc_top); // 1908
 			plot(9, pxqdc_left, pyqdc_bottom); // 1909
 		
