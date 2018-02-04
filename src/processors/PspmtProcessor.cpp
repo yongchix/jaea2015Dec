@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <signal.h>
 #include <limits.h>
+#include <cmath>
 
 #include "PspmtProcessor.hpp"
 #include "DammPlotIds.hpp"
@@ -581,6 +582,9 @@ static PixelEvent decayRec[2][600] = {};
 static double implantRefTime[600] = {};
 static double decayRefTime[600] = {};
 
+const double parX[4] = {2.3524e-7, -0.00018115, 0.10339, -7.1697};
+const double parY[4] = {1.5449e-7, -0.00011528, 0.084563, -5.1789}; 
+
 bool PspmtProcessor::Process(RawEvent &event){
 	if (!EventProcessor::Process(event))
 		return false;
@@ -644,6 +648,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 	double qdc_top=0,qdc_left=0,qdc_bottom=0,qdc_right=0;
 	double yqdc_top=0,xqdc_left=0,yqdc_bottom=0,xqdc_right=0;
 	double pyqdc_top=0,pxqdc_left=0,pyqdc_bottom=0,pxqdc_right=0;
+	//
+	double xPos, yPos; 
   
 	double xcal=0,ycal=0;
 	double xcal2=0,ycal2=0;
@@ -687,10 +693,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 	double yslope=0.0601;
 	double yoffset=-9.780;
 	*/
+	/*
 	double slopeX = 0.0613976395; 
 	double slopeY = 0.05899345; 
 	double offsetX = -4.3216135359; 
 	double offsetY = -3.5612959407; 
+	*/
 	double offset_mirror=341;
 	double offset_mirror2=365;
 	double QDCHIGHGATE=2000;
@@ -827,9 +835,14 @@ bool PspmtProcessor::Process(RawEvent &event){
 		xqdc_left   = (qdc_left/qdcs)*512 + 100;
 		yqdc_top    = (qdc_top/qdcs)*512 + 100;
 		yqdc_bottom = (qdc_bottom/qdcs)*512 + 100;
-
-		pxqdc_right = trunc(slopeX*(xqdc_right-100) + offsetX);
-		pyqdc_top = trunc(slopeY*(yqdc_top-100) + offsetY);
+		// by YX
+		xPos = xqdc_right - 100; 
+		yPos = yqdc_top - 100; 
+		xPos = parX[0]*pow(xPos,3) + parX[1]*pow(xPos, 2) + parX[2]*xPos + parX[3];
+		yPos = parY[0]*pow(yPos,3) + parY[1]*pow(yPos, 2) + parY[2]*yPos + parY[3];
+		// by YX
+		pxqdc_right = trunc(xPos + 0.5);
+		pyqdc_top = trunc(yPos + 0.5);
 
 		pxqdc_left = trunc(slope*xqdc_left-intercept);
 		pyqdc_bottom = trunc(slope*yqdc_bottom-intercept);
