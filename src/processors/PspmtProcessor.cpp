@@ -578,12 +578,14 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
 // for correlations
 static PixelEvent implantRec[600] = {};
 static PixelEvent decayRec[2][600] = {};
-
+//
 static double implantRefTime[600] = {};
 static double decayRefTime[600] = {};
-
+// for position calibrations
 const double parX[4] = {2.3524e-7, -0.00018115, 0.10339, -7.1697};
 const double parY[4] = {1.5449e-7, -0.00011528, 0.084563, -5.1789}; 
+//
+fstream outfile; 
 
 bool PspmtProcessor::Process(RawEvent &event){
 	if (!EventProcessor::Process(event))
@@ -649,7 +651,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	double yqdc_top=0,xqdc_left=0,yqdc_bottom=0,xqdc_right=0;
 	double pyqdc_top=0,pxqdc_left=0,pyqdc_bottom=0,pxqdc_right=0;
 	//
-	double xPos, yPos; 
+	double xPos, yPos, xPrePos, yPrePos; 
   
 	double xcal=0,ycal=0;
 	double xcal2=0,ycal2=0;
@@ -831,6 +833,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 		qdc_right  = (qdc4+qdc1)/2;
 		qdcs=(qdc1+qdc2+qdc3+qdc4)/2;
 
+		// almost raw information
 		xqdc_right  = (qdc_right/qdcs)*512 + 100;
 		xqdc_left   = (qdc_left/qdcs)*512 + 100;
 		yqdc_top    = (qdc_top/qdcs)*512 + 100;
@@ -838,6 +841,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 		// by YX
 		xPos = xqdc_right - 100; 
 		yPos = yqdc_top - 100; 
+		xPrePos = xPos; 
+		yPrePos = yPos;
 		xPos = parX[0]*pow(xPos,3) + parX[1]*pow(xPos, 2) + parX[2]*xPos + parX[3];
 		yPos = parY[0]*pow(yPos,3) + parY[1]*pow(yPos, 2) + parY[2]*yPos + parY[3];
 		// by YX
@@ -869,29 +874,40 @@ bool PspmtProcessor::Process(RawEvent &event){
 		 */
 		if(canProcess) { 
 			// plot reproduced "raw" position, in analogy with 1916/1917
-			plot(6, xqdc_right  , yqdc_top  ); // 1906
-			plot(7, xqdc_left  , yqdc_bottom  ); // 1907
-			plot(8, pxqdc_right, pyqdc_top); // 1908
-			plot(9, pxqdc_left, pyqdc_bottom); // 1909
-		
+			if(qdcCalib > 0) {
+				plot(6, xqdc_right  , yqdc_top  ); // 1906
+				plot(7, xqdc_left  , yqdc_bottom  ); // 1907
+				plot(8, pxqdc_right, pyqdc_top); // 1908
+				plot(9, pxqdc_left, pyqdc_bottom); // 1909
+			}		
 			double timeDiffImplant = 0;
 			double timeDiffDecay = 0;  
 			if(has_implant && qdcCalib > 0) {
 				plot(40, pxqdc_right, pyqdc_top); // 1940
-				implantRec[p1d].energy = qdcCalib; 
-				implantRec[p1d].time = pspmttime; 
 				plot(34, qdcCalib, p1d); // 1934
+
+				implantRec[p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 
+				/*
+				implantRec[p1d].GetEnergy() = qdcCalib; 
+				implantRec[p1d].time = pspmttime; 
+				implantRec[p1d].rawPos = make_pair(xPrePos, yPrePos); 
+				*/
 				// remove decay events
 				for(int i = 0; i < 2; i++) {
 					decayRec[i][p1d].Clear();
 				}
 			} else if(has_decay && qdcCalib > 0) {			
 				plot(33, qdcCalib, p1d); // 1933, decay only
-				if(implantRec[p1d].Is_Filled()) { // the preceding ion has been found
+				if(implantRec[p1d].Is_Filled() 
+				   && abs(xPrePos - implantRec[p1d].GetRawPos().first) < 5.
+				   && abs(yPrePos - implantRec[p1d].GetRawPos().second) < 6. ) { // the preceding ion has been found
 					if(!decayRec[0][p1d].Is_Filled()) {
+						decayRec[0][p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 
+						/*
 						decayRec[0][p1d].time = pspmttime;
-						decayRec[0][p1d].energy = qdcCalib;
-						timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+						decayRec[0][p1d].GetEnergy() = qdcCalib;
+						*/
+						timeDiffImplant = (pspmttime - implantRec[p1d].GetTime())*Globals::get()->clockInSeconds();
 						// plot 1946-1949
 						if(!has_veto) {
 							plot(46, qdcCalib, timeDiffImplant*1e6); 
@@ -900,18 +916,28 @@ bool PspmtProcessor::Process(RawEvent &event){
 							plot(49, qdcCalib, timeDiffImplant*1e3); 
 							plot(50, qdcCalib, timeDiffImplant*1e2);
 							plot(51, qdcCalib, p1d); // 1906 -> 1951
+							// output decay events falling within desired energy range
+							if(abs(qdcCalib - energyCentroid) <= energyFWHM) {
+								outfile.open((runName + ".scanout").c_str(), std::iostream::out | std::iostream::app); 
+								outfile << pxqdc_right << "  " << pyqdc_top << "  " << p1d << "  " 
+										<< qdcCalib << "  " << timeDiffImplant << endl;
+								outfile.close(); 
+							}
 						}
 					} else if(!decayRec[1][p1d].Is_Filled()) {
+						decayRec[1][p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 
+						/*
 						decayRec[1][p1d].time = pspmttime;
-						decayRec[1][p1d].energy = qdcCalib;
-						timeDiffImplant = (pspmttime - implantRec[p1d].time)*Globals::get()->clockInSeconds();
+						decayRec[1][p1d].GetEnergy() = qdcCalib;
+						*/
+						timeDiffImplant = (pspmttime - implantRec[p1d].GetTime())*Globals::get()->clockInSeconds();
 						/* Find correlated decays: 
 						 * T1/2 for 109Xe: 13 ms
 						 * T1/2 for 105Te: 0.62 us
 						 */
-						if((decayRec[1][p1d].time - decayRec[0][p1d].time)*Globals::get()->clockInSeconds() < 0.5e-3
-						   && (decayRec[1][p1d].time - decayRec[0][p1d].time) > 0) {
-							plot(61, decayRec[0][p1d].energy, decayRec[1][p1d].energy); // 1966
+						if((decayRec[1][p1d].GetTime() - decayRec[0][p1d].GetTime())*Globals::get()->clockInSeconds() < 0.5e-3
+						   && (decayRec[1][p1d].GetTime() - decayRec[0][p1d].GetTime()) > 0) {
+							plot(61, decayRec[0][p1d].GetEnergy(), decayRec[1][p1d].GetEnergy()); // 1961
 						}
 					} 
 				}

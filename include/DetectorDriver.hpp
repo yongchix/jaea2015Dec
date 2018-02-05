@@ -51,6 +51,8 @@ class EventProcessor;
 class TraceAnalyzer;
 
 extern double pixelCalib[600]; 
+extern double energyCentroid, energyFWHM; 
+extern std::string runName; 
 
 /*! \brief DetectorDriver controls event processing
 
@@ -207,6 +209,7 @@ private:
 	 * which is just a plain text file 
 	 */ 
 	void ReadPixelCalib();
+	void ReadEnergyRange(); 
 };
 
 #endif // __DETECTORDRIVER_HPP_

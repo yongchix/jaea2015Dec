@@ -10,6 +10,9 @@
 #include "RawEvent.hpp"
 #include "EventProcessor.hpp"
 #include "Globals.hpp"
+#include <vector>
+
+using namespace std; 
   
 class PspmtEvent{
 public:
@@ -86,23 +89,46 @@ private:
   } data_;
 };
 
-struct PixelEvent {
+// by YX
+class PixelEvent {
+private: 
 	double energy;
 	double time;
+	pair<double, double> rawPos; 
+public:
 	PixelEvent() {
 		energy = -1;
 		time = -1;
+		rawPos = make_pair(-1, -1); 
 	}
 	~PixelEvent() {
 		energy = -1;
 		time = -1;
+		rawPos = make_pair(-1, -1); 
+
 	}
 	void Clear() {
 		energy = -1;
 		time = -1;
+		rawPos = make_pair(-1, -1); 
+
 	}
 	bool Is_Filled() {
 		return (time > 0); 
+	}
+	void AssignValues(double e, double t, double x, double y) {
+		energy = e; 
+		time = t; 
+		rawPos = make_pair(x, y); 
+	}
+	double GetTime() {
+		return time; 
+	}
+	double GetEnergy() {
+		return energy; 
+	}
+	pair<double, double> GetRawPos() {
+		return rawPos; 
 	}
 };
 

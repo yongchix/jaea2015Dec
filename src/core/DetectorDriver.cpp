@@ -10,6 +10,7 @@
 #include <iterator>
 #include <limits>
 #include <sstream>
+#include <string>
 
 #include "pugixml.hpp"
 
@@ -69,6 +70,9 @@ using namespace dammIds::raw;
  * 2) generated and filled once upon the call of DetectorDriver                                                                                  
  */
 double pixelCalib[600] = {};
+// by Yongchi Xiao, 02/05/2018
+double energyCentroid, energyFWHM; 
+string runName; 
 
 DetectorDriver* DetectorDriver::instance = NULL;
 
@@ -415,6 +419,7 @@ int DetectorDriver::Init(RawEvent& rawev) {
         ReadCalXml();
         ReadWalkXml();
 		ReadPixelCalib(); /* by Yongchi Xiao, 01/17/2018 */ 
+		ReadEnergyRange(); /* by Yongchi Xiao; 02/05/2018 */
     } catch (GeneralException &e) {
         //! Any exception in reading calibration and walk correction
         //! will be intercepted here
@@ -782,11 +787,36 @@ void DetectorDriver::ReadPixelCalib() { // by Yongchi Xiao; 01/17/2018
 	}
 	infile.close();
 	m.done();
-	/*
-	for(int i = 0; i < 600; i++) {
-		cout << i << "  " << pixelCalib[i] << "; " << endl;
+}
+
+void DetectorDriver::ReadEnergyRange() { // by Yongchi Xiao, 02/05/2018
+	double eCentroid, eFWHM;
+	string rName; 
+	fstream infile; 
+	Messenger m; 
+	m.start("Loading correlation energy data"); 
+	infile.open("EnergyRange.scanin", std::iostream::in); 
+	if(!infile.is_open()) {
+		stringstream ss; 
+		ss << "Cannot locate energy range"; 
+		throw GeneralException(ss.str());
+	} else {
+		while(!infile.eof()) {
+			infile >> eCentroid >> eFWHM >> rName; 
+			energyCentroid = eCentroid; 
+			energyFWHM = eFWHM; 
+			runName = rName; 
+			if(infile.eof()) break;
+		}
 	}
-	*/
+	infile.close(); 
+	if(!(energyCentroid > 0 && energyFWHM > 0)) {
+		stringstream ss; 
+		ss << "Error with reading correlation energy data" << endl;
+		throw GeneralException(ss.str()); 
+	}
+		
+	m.done(); 
 }
 
 void DetectorDriver::ReadWalkXml() {
