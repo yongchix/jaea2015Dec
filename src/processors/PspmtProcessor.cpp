@@ -277,7 +277,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
 	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
 	DeclareHistogram2D(51, 2048, 1024, "P1D vs. Correlated decay E. 4 keV/ch"); // 1906 -> 1951
-	
+	DeclareHistogram1D(52, 128, "Pulse Shape Discrimination, Decays only"); // 1952
 
 
 	// correlation matrix
@@ -458,7 +458,8 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
 				plot(DD_TRACE_E_QDC,tred,qdcd/10);
 			}
         }
-
+		
+		
 		// below is dealing with on-board energy
 		/*
         if(ch==0){
@@ -572,7 +573,7 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
     } // end of one channel event
     
     EndProcess();
-    return(true);
+	return(true);
 }
 
 // for correlations
@@ -683,7 +684,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 	//Original SG setting
 	double slope=0.0606;
 	double intercept=10.13;
-	
+
+	// by Yongchi Xiao, for PSD purpose, 03/06/2018
+	double psd = 0; 
 	/*
 	double slope = 5.952381e-02; 
 	double intercept = 0; 
@@ -757,7 +760,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_MWPC_NOPSPMT,mwpcene/10,mwpcE);
 	}
    
- 
 	for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
 		 it != pspmtEvents.end(); it++) {        
 		ChanEvent *chan   = *it;
@@ -795,7 +797,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 			baseline      = trace.DoBaseline(2,20);
 			qdc           = trace.DoQDCSimple(20,140);
 			numpulse      = trace.GetValue("numPulses");
-
+			
+			
 			if(ch==0){
 				qdc1 = qdc;
 				tre1 = trace_energy;
@@ -815,15 +818,22 @@ bool PspmtProcessor::Process(RawEvent &event){
 				max_dynode=trace.GetTraceMax(1,140);
 				regression    = abs(3000*trace.DeduceRegression(20,140,0));
 				regression2   = abs(3000*trace.DeduceRegression(20,140,1));
+				if(!has_pileup) {
+					psd = trace.DoPSD(1, 80); 
+					plot(52, psd*100); // 1952
+					//					cout << psd << endl;
+				}
 			}
 		}
     
     
 	} // end of channel event
+
 	////////////////////////////
 	// based on qdc
 	if(qdc1 > 0 && qdc2 > 0 && qdc3 > 0 && qdc4 > 0) {
 		has_all_anode_qdc = true; 
+
 	}
 	
 	if(has_all_anode_qdc) {
@@ -897,6 +907,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 					decayRec[i][p1d].Clear();
 				}
 			} else if(has_decay && qdcCalib > 0) {			
+				if(!has_pileup) {
+					//plot(52, psd*100); // 1952
+				}
 				plot(33, qdcCalib, p1d); // 1933, decay only
 				if(implantRec[p1d].Is_Filled() 
 				   && abs(xPrePos - implantRec[p1d].GetRawPos().first) < 5.

@@ -20,23 +20,23 @@ const Trace emptyTrace; ///< an empty trace for const references to point to
 Plots Trace::histo(OFFSET, RANGE, "traces");
 
 double Trace::GetTraceMax(unsigned int lo,unsigned int hi){
-  double max=0,maxch=0;
-  double baseline = DoBaseline(0,20);
-  double max2=0;
-  for(unsigned int i=0;i<hi;i++){
-    if(max<at(i)){
-      max=at(i);
-      maxch=i;
-    }
-  }
+	double max=0,maxch=0;
+	double baseline = DoBaseline(0,20);
+	double max2=0;
+	for(unsigned int i=0;i<hi;i++){
+		if(max<at(i)){
+			max=at(i);
+			maxch=i;
+		}
+	}
   
-  max2=max-baseline;
-  return max2;
+	max2=max-baseline;
+	return max2;
 }
 
 
 void Trace::TrapezoidalFilter(Trace &filter, const TFP &parms,
-			      unsigned int lo, unsigned int hi) const {
+							  unsigned int lo, unsigned int hi) const {
     lo = max(lo, (unsigned int)parms.GetSize());
 
     filter.assign(lo, 0);
@@ -52,84 +52,84 @@ void Trace::TrapezoidalFilter(Trace &filter, const TFP &parms,
 }
 
 void Trace::ShowTraceVal(unsigned int lo, unsigned int hi){
-  cout << "===================" << endl;
-  for(unsigned int i=lo;i<hi;i++){
-    cout << "[TraceVal in Trace.cpp]" << i << " " << at(i) << endl;
-  }
-  cout << "===================" << endl;
+	cout << "===================" << endl;
+	for(unsigned int i=lo;i<hi;i++){
+		cout << "[TraceVal in Trace.cpp]" << i << " " << at(i) << endl;
+	}
+	cout << "===================" << endl;
 }
 
 bool Trace::ScanPileup(unsigned int lo,unsigned int hi){
   
-  double baseline = DoBaseline(2,20);
-  double max1=0;
-  int ch_max1=0;
+	double baseline = DoBaseline(2,20);
+	double max1=0;
+	int ch_max1=0;
 
-  double max2=0;
-  int ch_max2=0;
+	double max2=0;
+	int ch_max2=0;
 
-  int space = 15;
-  double reduction=0.4;
-  for(unsigned int i=lo;i<hi;i++){
-    if(max1 < at(i)){
-      max1 = at(i);
-      ch_max1 = i;
-    }
-  }
+	int space = 15;
+	double reduction=0.4;
+	for(unsigned int i=lo;i<hi;i++){
+		if(max1 < at(i)){
+			max1 = at(i);
+			ch_max1 = i;
+		}
+	}
 
-  for(unsigned int i=ch_max1+space;i<hi;i++){
-    if(max2 < at(i)){
-      max2 = at(i);
-      ch_max2 = i;
-    }
-  }
+	for(unsigned int i=ch_max1+space;i<hi;i++){
+		if(max2 < at(i)){
+			max2 = at(i);
+			ch_max2 = i;
+		}
+	}
   
-  //cout << max1*reduction << " " << max2 << endl; 
-  if((max1-baseline)*reduction<(max2-baseline)){
-    //  cout << "[pile up]" << ch_max1 << "  " << max1-baseline << " " << ch_max2 << " " << max2-baseline << endl; 
-    return true ;
-  }else{return false;
-  }
+	//cout << max1*reduction << " " << max2 << endl; 
+	if((max1-baseline)*reduction<(max2-baseline)){
+		//  cout << "[pile up]" << ch_max1 << "  " << max1-baseline << " " << ch_max2 << " " << max2-baseline << endl; 
+		return true ;
+	}else{return false;
+	}
   
  
 }
 
 double Trace::GetDiffMean(unsigned int lo,unsigned int hi){
   
-  double t=lo;
-  double integral=0;
-  double mean=0;
-  double sum_mean=0;				
-  double ch_max=0;
-  double max=0;
-  double diff_mean;
-  for(unsigned int i=lo;i<hi;i++){
+	double t=lo;
+	double integral=0;
+	double mean=0;
+	double sum_mean=0;				
+	double ch_max=0;
+	double max=0;
+	double diff_mean;
+	for(unsigned int i=lo;i<hi;i++){
     
-    //    cout << "GetPileup " <<lo << " " << at(i) << endl;
+		//    cout << "GetPileup " <<lo << " " << at(i) << endl;
     
-    if(max<at(i)){
-      max = at(i);
-      ch_max = t;
-    }
+		if(max<at(i)){
+			max = at(i);
+			ch_max = t;
+		}
     
-    integral  += at(i);
-    sum_mean  += t*at(i); 
-    t = t+1;
-    //    cout << t << " " << at(i) << " " << integral << " " << sum_mean << " " << ch_max  << endl;
-  }
+		integral  += at(i);
+		sum_mean  += t*at(i); 
+		t = t+1;
+		//    cout << t << " " << at(i) << " " << integral << " " << sum_mean << " " << ch_max  << endl;
+	}
   
-  mean      = sum_mean/integral;
-  diff_mean = mean-ch_max; 
-  // cout << " mean " << mean << " max " << ch_max << " " << diff_mean << endl;
-  return diff_mean;
+	mean      = sum_mean/integral;
+	diff_mean = mean-ch_max; 
+	// cout << " mean " << mean << " max " << ch_max << " " << diff_mean << endl;
+	return diff_mean;
 }
 
 double Trace::DoBaseline(unsigned int lo, unsigned int numBins) {
   
-  if (size() < lo + numBins) {
-    cerr << "Bad range in baseline calculation." << endl;
-    return NAN;
-  }
+	if (size() < lo + numBins) {
+		cerr << "Bad range in baseline calculation." << endl;
+		return NAN;
+	}
   
     unsigned int hi = lo + numBins;
 
@@ -161,10 +161,10 @@ double Trace::DoDiscrimination(unsigned int lo, unsigned int numBins) {
     double baseline = GetValue("baseline");
 
     if(size() < high)
-	return pixie::U_DELIMITER;
+		return pixie::U_DELIMITER;
 
     for(unsigned int i = max+lo; i <= max+high; i++)
-	discrim += at(i)-baseline;
+		discrim += at(i)-baseline;
 
     InsertValue("discrim", discrim);
 
@@ -173,164 +173,216 @@ double Trace::DoDiscrimination(unsigned int lo, unsigned int numBins) {
 
 double Trace::DeduceRegression(unsigned int lo,unsigned int hi,unsigned int mode){
   
-  unsigned int max_ch=0;			       
-  double max=0;
-  double ave[300];
-  double waveform[300];
-  double t[300];
-  double regression[300];
-  double reg;
-  double reglow=-4000;
-  double reghigh=-10;
-  int    regcount=0;
-  double regsum=0;
-  int    range=10;
-  double av=0,mean=0;
-  double avsum=0,meansum=0;
-  double av2=0,mean2=0;
-  double avsum2=0,meansum2=0;
+	unsigned int max_ch=0;			       
+	double max=0;
+	double ave[300];
+	double waveform[300];
+	double t[300];
+	double regression[300];
+	double reg;
+	double reglow=-4000;
+	double reghigh=-10;
+	int    regcount=0;
+	double regsum=0;
+	int    range=10;
+	double av=0,mean=0;
+	double avsum=0,meansum=0;
+	double av2=0,mean2=0;
+	double avsum2=0,meansum2=0;
   
-  double baseline = DoBaseline(2,20);
+	double baseline = DoBaseline(2,20);
   
-  for(unsigned int i=lo;i<hi;i++){
-    waveform[i]=at(i)-baseline;
-  }
+	for(unsigned int i=lo;i<hi;i++){
+		waveform[i]=at(i)-baseline;
+	}
   
-  for(unsigned int i=lo+2;i<hi-2;i++){
-    ave[i] = log((waveform[i-2]+waveform[i-1]+waveform[i]+waveform[i+1]+waveform[i+2])/5);
-    if(max<ave[i]){
-      max_ch=i;
-      max=ave[i];
-      t[i]=i;
-    }
-  }
+	for(unsigned int i=lo+2;i<hi-2;i++){
+		ave[i] = log((waveform[i-2]+waveform[i-1]+waveform[i]+waveform[i+1]+waveform[i+2])/5);
+		if(max<ave[i]){
+			max_ch=i;
+			max=ave[i];
+			t[i]=i;
+		}
+	}
   
   
-  if(mode==0){ // fast decay component 
-  for(unsigned int i = max_ch+2;i < max_ch+range;i++){  
-      regression[i]=(ave[i]-ave[i-1])/(t[i]-t[i-1]);
-      if(regression[i]>reglow && regression[i]<reghigh){
-	regcount++;
-	regsum += abs(regression[i]);
-      }
-      avsum+=ave[i];
-      meansum+=i;
-    }  
-    av=avsum/(range-2);
-    mean=meansum/(range-2);
-  }
+	if(mode==0){ // fast decay component 
+		for(unsigned int i = max_ch+2;i < max_ch+range;i++){  
+			regression[i]=(ave[i]-ave[i-1])/(t[i]-t[i-1]);
+			if(regression[i]>reglow && regression[i]<reghigh){
+				regcount++;
+				regsum += abs(regression[i]);
+			}
+			avsum+=ave[i];
+			meansum+=i;
+		}  
+		av=avsum/(range-2);
+		mean=meansum/(range-2);
+	}
   
-  double crosssum=0;
-  double diffsum=0;
-  double beta_chi=0;
-  double tt;
+	double crosssum=0;
+	double diffsum=0;
+	double beta_chi=0;
+	double tt;
   
-  if(mode==0){
-  for(unsigned int i = max_ch+2;i < max_ch+3*range;i++){  
-    tt=i;
-    crosssum+=(tt-mean)*(ave[i]-av);
-    diffsum+=(tt-mean)*(tt-mean);
+	if(mode==0){
+		for(unsigned int i = max_ch+2;i < max_ch+3*range;i++){  
+			tt=i;
+			crosssum+=(tt-mean)*(ave[i]-av);
+			diffsum+=(tt-mean)*(tt-mean);
     
-  }
-  beta_chi = crosssum/diffsum;
-  reg=beta_chi;
-  }
+		}
+		beta_chi = crosssum/diffsum;
+		reg=beta_chi;
+	}
   
-  if(mode==1){ //  slow decay component 
-    for(unsigned int i = max_ch+range;i < max_ch+2*range;i++){  
-      regression[i]=(ave[i]-ave[i-1])/(t[i]-t[i-1]);
-      if(regression[i]>reglow && regression[i]<reghigh){
-	regcount++;
-	regsum += abs(regression[i]);
-      }
+	if(mode==1){ //  slow decay component 
+		for(unsigned int i = max_ch+range;i < max_ch+2*range;i++){  
+			regression[i]=(ave[i]-ave[i-1])/(t[i]-t[i-1]);
+			if(regression[i]>reglow && regression[i]<reghigh){
+				regcount++;
+				regsum += abs(regression[i]);
+			}
       
-      avsum2+=ave[i];
-      meansum2+=i;
-    }
+			avsum2+=ave[i];
+			meansum2+=i;
+		}
     
-    av2=avsum2/(hi-2-range);
-    mean2=meansum2/(hi-2-range);
-  }
+		av2=avsum2/(hi-2-range);
+		mean2=meansum2/(hi-2-range);
+	}
   
 
-  double crosssum2=0;
-  double diffsum2=0;
-  double beta_chi2=0;
-  double tt2;
+	double crosssum2=0;
+	double diffsum2=0;
+	double beta_chi2=0;
+	double tt2;
   
-  if(mode==1){
-  for(unsigned int i = max_ch+range;i < max_ch+hi-2;i++){  
-    tt2=i;
-    crosssum2+=(tt2-mean2)*(ave[i]-av2);
-    diffsum2+=(tt2-mean2)*(tt2-mean2);
+	if(mode==1){
+		for(unsigned int i = max_ch+range;i < max_ch+hi-2;i++){  
+			tt2=i;
+			crosssum2+=(tt2-mean2)*(ave[i]-av2);
+			diffsum2+=(tt2-mean2)*(tt2-mean2);
     
-  }
-  beta_chi2 = crosssum2/diffsum2;
-  reg = beta_chi2;
-  }
+		}
+		beta_chi2 = crosssum2/diffsum2;
+		reg = beta_chi2;
+	}
 
   
-  //  cout << "beta_chi " << beta_chi << " " << beta_chi2 << endl;
+	//  cout << "beta_chi " << beta_chi << " " << beta_chi2 << endl;
 
 
 
-  //  cout << reg << endl;
+	//  cout << reg << endl;
     
-  return reg;
+	return reg;
 }
 
 double Trace::DoQDCSimple(unsigned int lo,unsigned int hi){
   
-  double baseline = GetValue("baseline");
-  double qdc=0;
-  for(unsigned int i=lo;i<=hi;i++){
-    qdc += at(i)-baseline;
-  }
+	double baseline = GetValue("baseline");
+	double qdc=0;
+	for(unsigned int i=lo;i<=hi;i++){
+		qdc += at(i)-baseline;
+	}
   
-  return (qdc);
+	return (qdc);
 }
 double Trace::DoQDC(unsigned int lo, unsigned int numBins) {
     unsigned int high = lo+numBins;
 
     if(size() < high)
-      return pixie::U_DELIMITER;
+		return pixie::U_DELIMITER;
 
     double baseline = GetValue("baseline");
     double qdc = 0, fullQdc = 0;
     
     for(unsigned int i = lo; i <= high; i++) {
         qdc += at(i)-baseline;
-	waveform.push_back(at(i)-baseline);
+		waveform.push_back(at(i)-baseline);
     }
     
     for(unsigned int i = 0; i < size(); i++)
-      {
-	fullQdc += at(i)-baseline;
-      }
+		{
+			fullQdc += at(i)-baseline;
+		}
     InsertValue("fullQdc", fullQdc);
     InsertValue("tqdc", qdc);
     return(qdc);
 }
 
+double Trace::DoQDCTail(unsigned int lo, unsigned int numBins) {
+	/* This is not appropriate for 
+	 * pile-up traces
+	 */
+	unsigned int high = lo + numBins; 
+	if(size() < high)
+		return pixie::U_DELIMITER; 
+	
+	double baseline = GetValue("baseline"); 
+	double max = 0; 
+	int ch_max = 0;
+	
+	for(unsigned int i = lo; i < high; i++) {
+		if(max < at(i)) {
+			max = at(i); 
+			ch_max = i; 
+		}
+		/*
+		  if(at(i) < baseline) {
+		  ch_end = i; 
+		  break;
+		  }
+		*/
+	} // found the maximum point
+	
+	double qdc = 0; 
+	for(unsigned int i = ch_max; i <= high; i++) {
+		qdc += at(i) - baseline; 
+	}
+
+	//	cout << "qdc_tail = " << qdc << endl;
+	//	InsertValue("singleTailQDC", qdc); // a new variable
+	return qdc; 
+	
+}
+
+double Trace::DoPSD(unsigned int lo, unsigned int numBins) {
+	unsigned int high = lo + numBins;
+	if(size() < high) 
+		return pixie::U_DELIMITER; 
+
+	double pulseQDC = DoQDCSimple(lo, numBins); 
+	double tailQDC = DoQDCTail(lo, numBins); 
+
+	//	cout << "vs. qdc_pulse = " << pulseQDC << endl;
+
+	double psd = tailQDC/pulseQDC; 
+	//	InsertValue("psd", psd); 
+
+	return psd; 
+}
+
 unsigned int Trace::FindMaxInfo(unsigned int lo, unsigned int hi, unsigned int numBins) {
   
-  unsigned int high = Globals::get()->traceDelay() /
+	unsigned int high = Globals::get()->traceDelay() /
         (Globals::get()->adcClockInSeconds()*1e9);
     unsigned int low = high - (Globals::get()->trapezoidalWalk() /
-			    (Globals::get()->adcClockInSeconds()*1e9)) - 3;
+							   (Globals::get()->adcClockInSeconds()*1e9)) - 3;
 
     if(size() < high)
-      return pixie::U_DELIMITER;
+		return pixie::U_DELIMITER;
 
     Trace::const_iterator itTrace = max_element(begin()+low, end()-(size()-high));
     int maxPos = int(itTrace-begin());
     
     if(maxPos + hi > size())
-      return pixie::U_DELIMITER;
+		return pixie::U_DELIMITER;
     
     if(*itTrace >= 4095) {
-      InsertValue("saturation", 1);
-      return(-1);
+		InsertValue("saturation", 1);
+		return(-1);
     }
     
     DoBaseline(0, maxPos-lo);
