@@ -277,8 +277,10 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
 	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
 	DeclareHistogram2D(51, 2048, 1024, "P1D vs. Correlated decay E. 4 keV/ch"); // 1906 -> 1951
+	//
 	DeclareHistogram1D(52, 128, "Pulse Shape Discrimination, Decays only"); // 1952
-
+	DeclareHistogram1D(53, 128, "Pulse Shape Discrimination, Recoils only"); // 1953
+	DeclareHistogram2D(54, 2048, 128, "Energy (4 keV/ch) vs. PSD"); // 1954
 
 	// correlation matrix
 	DeclareHistogram2D(61, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch"); // 1961
@@ -819,8 +821,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				regression    = abs(3000*trace.DeduceRegression(20,140,0));
 				regression2   = abs(3000*trace.DeduceRegression(20,140,1));
 				if(!has_pileup) {
-					psd = trace.DoPSD(1, 80); 
-					plot(52, psd*100); // 1952
+					psd = trace.DoPSD(1, 90); 
 					//					cout << psd << endl;
 				}
 			}
@@ -895,31 +896,23 @@ bool PspmtProcessor::Process(RawEvent &event){
 			if(has_implant && qdcCalib > 0) {
 				plot(40, pxqdc_right, pyqdc_top); // 1940
 				plot(34, qdcCalib, p1d); // 1934
+				plot(53, psd*100); // 1953
 
 				implantRec[p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 
-				/*
-				implantRec[p1d].GetEnergy() = qdcCalib; 
-				implantRec[p1d].time = pspmttime; 
-				implantRec[p1d].rawPos = make_pair(xPrePos, yPrePos); 
-				*/
 				// remove decay events
 				for(int i = 0; i < 2; i++) {
 					decayRec[i][p1d].Clear();
 				}
 			} else if(has_decay && qdcCalib > 0) {			
-				if(!has_pileup) {
-					//plot(52, psd*100); // 1952
-				}
 				plot(33, qdcCalib, p1d); // 1933, decay only
+				if(!has_pileup && !has_veto) {
+					plot(52, psd*100); // 1952
+				}
 				if(implantRec[p1d].Is_Filled() 
 				   && abs(xPrePos - implantRec[p1d].GetRawPos().first) < 5.
 				   && abs(yPrePos - implantRec[p1d].GetRawPos().second) < 6. ) { // the preceding ion has been found
 					if(!decayRec[0][p1d].Is_Filled()) {
 						decayRec[0][p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 
-						/*
-						decayRec[0][p1d].time = pspmttime;
-						decayRec[0][p1d].GetEnergy() = qdcCalib;
-						*/
 						timeDiffImplant = (pspmttime - implantRec[p1d].GetTime())*Globals::get()->clockInSeconds();
 						// plot 1946-1949
 						if(!has_veto) {
@@ -929,13 +922,17 @@ bool PspmtProcessor::Process(RawEvent &event){
 							plot(49, qdcCalib, timeDiffImplant*1e3); 
 							plot(50, qdcCalib, timeDiffImplant*1e2);
 							plot(51, qdcCalib, p1d); // 1906 -> 1951
+							// Energy vs. PSD
+							plot(54, qdcCalib, psd*100); // 1954
 							// output decay events falling within desired energy range
+							/*
 							if(abs(qdcCalib - energyCentroid) <= energyFWHM) {
 								outfile.open((runName + ".scanout").c_str(), std::iostream::out | std::iostream::app); 
 								outfile << pxqdc_right << "  " << pyqdc_top << "  " << p1d << "  " 
 										<< qdcCalib << "  " << timeDiffImplant << endl;
 								outfile.close(); 
 							}
+							*/
 						}
 					} else if(!decayRec[1][p1d].Is_Filled()) {
 						decayRec[1][p1d].AssignValues(qdcCalib, pspmttime, xPrePos, yPrePos); 

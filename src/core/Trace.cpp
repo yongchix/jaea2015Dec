@@ -303,10 +303,10 @@ double Trace::DoQDC(unsigned int lo, unsigned int numBins) {
 		waveform.push_back(at(i)-baseline);
     }
     
-    for(unsigned int i = 0; i < size(); i++)
-		{
-			fullQdc += at(i)-baseline;
-		}
+    for(unsigned int i = 0; i < size(); i++) {
+		fullQdc += at(i)-baseline;
+	}// QDC through out the length of a trace
+
     InsertValue("fullQdc", fullQdc);
     InsertValue("tqdc", qdc);
     return(qdc);
