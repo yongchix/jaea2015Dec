@@ -281,6 +281,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram1D(52, 128, "Pulse Shape Discrimination, Decays only"); // 1952
 	DeclareHistogram1D(53, 128, "Pulse Shape Discrimination, Recoils only"); // 1953
 	DeclareHistogram2D(54, 2048, 128, "Energy (4 keV/ch) vs. PSD"); // 1954
+	DeclareHistogram2D(55, 2048, 128, "Energy (4 keV/ch) vs. PSD, <2 ms"); // 1955
 
 	// correlation matrix
 	DeclareHistogram2D(61, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch"); // 1961
@@ -924,6 +925,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 							plot(51, qdcCalib, p1d); // 1906 -> 1951
 							// Energy vs. PSD
 							plot(54, qdcCalib, psd*100); // 1954
+							if(timeDiffImplant < 2.e-3) {
+								plot(55, qdcCalib, psd*100); // 1955
+							}
 							// output decay events falling within desired energy range
 							/*
 							if(abs(qdcCalib - energyCentroid) <= energyFWHM) {
