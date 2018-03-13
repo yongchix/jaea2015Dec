@@ -131,6 +131,11 @@ public:
 	double DoQDCTail(unsigned int lo, unsigned int numBins); 
 	double DoPSD(unsigned int lo, unsigned int numBins); 
 	//-----------------//
+	/* by Yongchi Xiao
+	 * define a function summing traces
+	 */
+	void SumTrace(Trace &tr); 
+	//-----------------//
   
 	double GetTraceMax(unsigned int lo,unsigned int hi);
 	void   ShowTraceVal(unsigned int lo,unsigned int hi);

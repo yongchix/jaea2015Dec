@@ -68,11 +68,11 @@ void DoubleTraceAnalyzer::DeclarePlots() {
     sample_trace.DeclareHistogram2D(DD_TRIPLE_TRACE, traceBins,
                                     numTraces, "Interesting triple traces");
     sample_trace.DeclareHistogram2D(DD_TRIPLE_TRACE_FILTER1, traceBins,
-                                numTraces, "Interesting traces (fast filter)");
+									numTraces, "Interesting traces (fast filter)");
     sample_trace.DeclareHistogram2D(DD_TRIPLE_TRACE_FILTER2, traceBins,
-                            numTraces, "Interesting traces (energy filter)");
+									numTraces, "Interesting traces (energy filter)");
     sample_trace.DeclareHistogram2D(DD_TRIPLE_TRACE_FILTER3, traceBins,
-                                numTraces, "Interesting traces (3rd filter)");
+									numTraces, "Interesting traces (3rd filter)");
 }
 
 /**
@@ -80,43 +80,43 @@ void DoubleTraceAnalyzer::DeclarePlots() {
  *     trace and deduce its energy
  */
 void DoubleTraceAnalyzer::Analyze(Trace &trace,
-				  const std::string &type, const std::string &subtype) {
-  Messenger m;
+								  const std::string &type, const std::string &subtype) {
+	Messenger m;
   
-  TraceFilterer::Analyze(trace, type, subtype);
+	TraceFilterer::Analyze(trace, type, subtype);
     // class to see when the fast filter falls below threshold
     static binder2nd< less<Trace::value_type> > recrossesThreshold
-      (less<Trace::value_type>(), fastThreshold);
+		(less<Trace::value_type>(), fastThreshold);
     
     if ( pulse.isFound && level >= 10 ) {
         
-      Trace::iterator iThr  = fastFilter.begin() + pulse.time;
-      Trace::iterator iHigh = fastFilter.end();
+		Trace::iterator iThr  = fastFilter.begin() + pulse.time;
+		Trace::iterator iHigh = fastFilter.end();
       
-      vector<PulseInfo> pulseVec;
-      pulseVec.push_back(pulse);
-      const size_t pulseLimit = 50; // maximum number of pulses to find
+		vector<PulseInfo> pulseVec;
+		pulseVec.push_back(pulse);
+		const size_t pulseLimit = 50; // maximum number of pulses to find
       
         while (iThr < iHigh) {
-	  advance(iThr, fastParms.GetGapSamples());
-	  iThr = find_if(iThr, iHigh, recrossesThreshold);
-	  advance(iThr, fastParms.GetRiseSamples());
+			advance(iThr, fastParms.GetGapSamples());
+			iThr = find_if(iThr, iHigh, recrossesThreshold);
+			advance(iThr, fastParms.GetRiseSamples());
 	    
-	  FindPulse(iThr, iHigh);
-	  if (pulse.isFound) {
-	    pulseVec.push_back(pulse);
-	    iThr = fastFilter.begin() + pulse.time;
+			FindPulse(iThr, iHigh);
+			if (pulse.isFound) {
+				pulseVec.push_back(pulse);
+				iThr = fastFilter.begin() + pulse.time;
             } else break;
-	  if (pulseVec.size() > pulseLimit) {
+			if (pulseVec.size() > pulseLimit) {
 	    
-	    stringstream ss;
-	    ss << "Too many pulses, limit = "
-	       << pulseLimit << ", breaking out.";
-	    m.warning(ss.str());
+				stringstream ss;
+				ss << "Too many pulses, limit = "
+				   << pulseLimit << ", breaking out.";
+				m.warning(ss.str());
 	    
-	    EndAnalyze();
-	    return;
-	  }
+				EndAnalyze();
+				return;
+			}
         }
 	
         trace.SetValue("numPulses", (int)pulseVec.size());
@@ -144,20 +144,20 @@ void DoubleTraceAnalyzer::Analyze(Trace &trace,
 
                 trace.Plot(DD_TRIPLE_TRACE, numTripleTraces);
                 fastFilter.ScalePlot(DD_TRIPLE_TRACE_FILTER1, numTripleTraces,
-                                    fastParms.GetRiseSamples());
+									 fastParms.GetRiseSamples());
                 energyFilter.ScalePlot(DD_TRIPLE_TRACE_FILTER2, numTripleTraces,
-                                    energyParms.GetRiseSamples());
+									   energyParms.GetRiseSamples());
                 if (useThirdFilter)
                     thirdFilter.ScalePlot(DD_TRIPLE_TRACE_FILTER3,
-                                numTripleTraces, thirdParms.GetRiseSamples());
-                    numTripleTraces++;
+										  numTripleTraces, thirdParms.GetRiseSamples());
+				numTripleTraces++;
             }
 
             trace.plot(D_ENERGY2, pulseVec[1].energy);
             trace.plot(DD_ENERGY2__TDIFF,
-                pulseVec[1].energy, pulseVec[1].time - pulseVec[0].time);
+					   pulseVec[1].energy, pulseVec[1].time - pulseVec[0].time);
             trace.plot(DD_ENERGY2__ENERGY1,
-                pulseVec[1].energy, pulseVec[0].energy);
+					   pulseVec[1].energy, pulseVec[0].energy);
 
             numDoubleTraces++;
         } // if found double trace

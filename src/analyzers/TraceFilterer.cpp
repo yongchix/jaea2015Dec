@@ -77,10 +77,10 @@ void TraceFilterer::DeclarePlots(void) {
     sample_trace.DeclareHistogram1D(D_ENERGY1, energyBins, "E1 from trace");
 
     sample_trace.DeclareHistogram2D(DD_ENERGY__BOARD_FILTER,
-                                 energyBins2, energyBins2,
-                                "Board raw energy vs filter energy (/10)");
+									energyBins2, energyBins2,
+									"Board raw energy vs filter energy (/10)");
     sample_trace.DeclareHistogram1D(D_RATIO_BOARD_FILTER,
-                energyBins2, "Ratio raw energy to filter (%)");
+									energyBins2, "Ratio raw energy to filter (%)");
 }
 
 void TraceFilterer::Analyze(Trace &trace, const std::string &type,
@@ -90,26 +90,26 @@ void TraceFilterer::Analyze(Trace &trace, const std::string &type,
     if (level >= 5) {
         const size_t baselineBins = 30;
         const double deviationCut = fastThreshold / 4. /
-                                    fastParms.GetRiseSamples();
+			fastParms.GetRiseSamples();
 
         double trailingBaseline  = trace.DoBaseline(
-                                trace.size() - baselineBins - 1, baselineBins);
+													trace.size() - baselineBins - 1, baselineBins);
 
         // start at sample 5 because first samples are occasionally corrupted
         trace.DoBaseline(5, baselineBins);
         /*
-	if ( trace.GetValue("sigmaBaseline") > deviationCut ||
-            abs(trailingBaseline - trace.GetValue("baseline")) < deviationCut) {
-            // perhaps check trailing baseline deviation
-            // from a simple linear fit
-            static int rejectedTraces = 0;
-            unsigned short numTraces = Globals::get()->numTraces();
-            if (rejectedTraces < numTraces)
-                trace.Plot(DD_REJECTED_TRACE, rejectedTraces++);
-            EndAnalyze(); // update timing
-            return;
-        }
-	*/
+		  if ( trace.GetValue("sigmaBaseline") > deviationCut ||
+		  abs(trailingBaseline - trace.GetValue("baseline")) < deviationCut) {
+		  // perhaps check trailing baseline deviation
+		  // from a simple linear fit
+		  static int rejectedTraces = 0;
+		  unsigned short numTraces = Globals::get()->numTraces();
+		  if (rejectedTraces < numTraces)
+		  trace.Plot(DD_REJECTED_TRACE, rejectedTraces++);
+		  EndAnalyze(); // update timing
+		  return;
+		  }
+		*/
         fastFilter.clear();
         energyFilter.clear();
 
@@ -130,12 +130,12 @@ void TraceFilterer::Analyze(Trace &trace, const std::string &type,
         }
 
         fastFilter.ScalePlot(DD_FILTER1, numTracesAnalyzed,
-                    fastParms.GetRiseSamples() );
+							 fastParms.GetRiseSamples() );
         energyFilter.ScalePlot(DD_FILTER2, numTracesAnalyzed,
-                    energyParms.GetRiseSamples() );
+							   energyParms.GetRiseSamples() );
         if (useThirdFilter) {
             thirdFilter.ScalePlot(DD_FILTER3, numTracesAnalyzed,
-                    thirdParms.GetRiseSamples() );
+								  thirdParms.GetRiseSamples() );
         }
         trace.plot(D_ENERGY1, pulse.energy);
     }
@@ -145,7 +145,7 @@ void TraceFilterer::Analyze(Trace &trace, const std::string &type,
 const TraceFilterer::PulseInfo& TraceFilterer::FindPulse(Trace::iterator begin,
                                                          Trace::iterator end) {
     static binder2nd< greater<Trace::value_type> > crossesThreshold
-	(greater<Trace::value_type>(), fastThreshold);
+		(greater<Trace::value_type>(), fastThreshold);
 
     Trace::size_type sample;
     Trace::size_type presample;
@@ -165,15 +165,16 @@ const TraceFilterer::PulseInfo& TraceFilterer::FindPulse(Trace::iterator begin,
         if (useThirdFilter) {
             sample = pulse.time + (thirdParms.GetSize() - fastParms.GetSize()) / 2;
             if (sample >= thirdFilter.size() ||
-            thirdFilter[sample] < slowThreshold) {
+				thirdFilter[sample] < slowThreshold) {
                 begin++;
                 continue;
             }
         }
         //? some investigation needed here for good resolution
         // add a presample location
-        // sample = pulse.time + (energyParms.GetSize() - fastParms.GetSize()) / 2;
-        sample = pulse.time + 40;
+		//		sample = pulse.time + (energyParms.GetSize() - fastParms.GetSize()) / 2;
+		//		sample = pulse.time + 5;
+		sample = pulse.time + energyParms.GetSize()/2.; 
 
         RandomPool* randoms = RandomPool::get();
         if (sample < energyFilter.size()) {

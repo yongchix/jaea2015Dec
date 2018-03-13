@@ -693,6 +693,19 @@ vector<EventProcessor *> DetectorDriver::GetProcessors(const std::string& type) 
 
   return retVec;
 }
+/* by Yongchi Xiao
+ * construct my own trace analyzer 
+ * for artificially created traces
+ */ 
+vector<TraceAnalyzer *> DetectorDriver::GetAnalyzers() const {
+	vector<TraceAnalyzer *> retVec; 
+	for(vector<TraceAnalyzer *>::const_iterator it = vecAnalyzer.begin(); 
+		it != vecAnalyzer.end(); it++) {
+			retVec.push_back(*it); 
+	}
+	
+	return retVec; 
+}
 
 void DetectorDriver::ReadCalXml() {
     pugi::xml_document doc;

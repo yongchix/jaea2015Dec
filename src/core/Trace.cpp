@@ -280,11 +280,13 @@ double Trace::DeduceRegression(unsigned int lo,unsigned int hi,unsigned int mode
 }
 
 double Trace::DoQDCSimple(unsigned int lo,unsigned int hi){
-  
-	double baseline = GetValue("baseline");
+	double baseline = DoBaseline(0, 20); 
+	
+	//	double baseline = GetValue("baseline");
 	double qdc=0;
 	for(unsigned int i=lo;i<=hi;i++){
 		qdc += at(i)-baseline;
+		if(lo+hi >= size()) break;
 	}
   
 	return (qdc);
@@ -312,6 +314,7 @@ double Trace::DoQDC(unsigned int lo, unsigned int numBins) {
     return(qdc);
 }
 
+//-----------//
 double Trace::DoQDCTail(unsigned int lo, unsigned int numBins) {
 	/* This is not appropriate for 
 	 * pile-up traces
@@ -329,12 +332,6 @@ double Trace::DoQDCTail(unsigned int lo, unsigned int numBins) {
 			max = at(i); 
 			ch_max = i; 
 		}
-		/*
-		  if(at(i) < baseline) {
-		  ch_end = i; 
-		  break;
-		  }
-		*/
 	} // found the maximum point
 	
 	double qdc = 0; 
@@ -342,26 +339,36 @@ double Trace::DoQDCTail(unsigned int lo, unsigned int numBins) {
 		qdc += at(i) - baseline; 
 	}
 
-	//	cout << "qdc_tail = " << qdc << endl;
-	//	InsertValue("singleTailQDC", qdc); // a new variable
-	return qdc; 
-	
+	return qdc; 	
 }
 
+//---------------//
 double Trace::DoPSD(unsigned int lo, unsigned int numBins) {
 	unsigned int high = lo + numBins;
 	if(size() < high) 
 		return pixie::U_DELIMITER; 
 
+	double baseline = DoBaseline(0, 20); 
 	double pulseQDC = DoQDCSimple(lo, numBins); 
 	double tailQDC = DoQDCTail(lo, numBins); 
 
-	//	cout << "vs. qdc_pulse = " << pulseQDC << endl;
-
 	double psd = tailQDC/pulseQDC; 
-	//	InsertValue("psd", psd); 
 
 	return psd; 
+}
+//-----------------//
+void Trace::SumTrace(Trace& tr) {
+	if(tr.size() == 0) {
+		for(int i = 0; i < size(); i++) {
+			tr.push_back(at(i)); 
+		}
+	} else if(tr.size() == size()) {
+		for(int i = 0; i < size(); i++) {
+			tr.at(i) += at(i); 
+		}
+	} else if(tr.size() > 0 && tr.size() != size()) {
+		exit(EXIT_FAILURE); 
+	}
 }
 
 unsigned int Trace::FindMaxInfo(unsigned int lo, unsigned int hi, unsigned int numBins) {

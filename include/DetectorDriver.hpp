@@ -155,6 +155,11 @@ public:
      * \param [in] type : the name of the processor to return */
     std::vector<EventProcessor *> GetProcessors(const std::string &type) const;
 
+	/* by Yongchi Xiao; 03/08/2018
+	 * Return trace analyzers
+	 */ 
+	std::vector<TraceAnalyzer *> GetAnalyzers() const; 
+
     /** \return the set of detectors used in the analysis */
     const std::set<std::string> &GetUsedDetectors(void) const;
 
