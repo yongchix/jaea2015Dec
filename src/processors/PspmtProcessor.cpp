@@ -653,10 +653,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 	// by YX
 	bool canProcess = false;
 	double all_trace_length = 1; 
-	bool on_pspmt = false; /* in case some events
-							* were reproduced outside
-							* the pspmt
-							*/ 
 
 	if(mult_pspmt==5){
 		has_pspmt=true;
@@ -825,10 +821,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 		qdcRight = traceRight.DoQDCSimple(1, 120); 
 		// position in ratio
 		double rx, ry; 
-		/*
-		rx = qdcTop/(qdcTop + qdcBottom); 
-		ry = qdcRight/(qdcRight + qdcLeft); 
-		*/
 		rx = qdcTop/traceSum.DoQDCSimple(1, 120); 
 		ry = qdcRight/traceSum.DoQDCSimple(1, 120); 
 		rx *= 1000; 
@@ -850,21 +842,85 @@ bool PspmtProcessor::Process(RawEvent &event){
 		if(p1d > 0 && p1d <=576) {
 			qdcSum *= pixelCalib[p1d]; 
 			plot(63, qdcSum, p1d); // 1963
-			on_pspmt = true; 
 		}
-		PixelEvent pe; 
-		pe.AssignValues(qdcSum, pspmttime, px, py); 
+		PixelEvent pe;
+		bool is_implant = false; 
+		if(has_mwpc) {
+			if(pspmttime > mwpctime) { // first pulse comes later
+				is_implant = true; 
+			} else {
+				is_implant = false; 
+			}
+		} else {
+			is_implant = false;
+		}
+		pe.AssignValues(qdcSum, pspmttime, px, py, is_implant); 
 		vecPixel.push_back(pe); 
+		pe.Clear(); 
 
 		/* Process pile-up signals
 		 */ 
-		double energy2 = 0, time2 = 0;
-		if(has_pileup & !has_veto) {
-		time2 = traceDynode.GetValue("filterTime2"); 
-		time2 -= 1; /* Since the trigger filter
-					 * is lagged behind the 
-					 * start of a pulse
-					 */ 
+		double pspmttime2 = 0;
+		if(has_pileup) {
+			pspmttime2 = traceDynode.GetValue("filterTime2"); 
+			pspmttime2 -= 1; /* Since the trigger filter
+						 * is lagged behind the 
+						 * start of a pulse
+						 */ 
+			/* filter time is assigned with respect
+			 * to the head of a trace
+			 */			
+			/* Now extract information from the 
+			 * second signal:
+			 * energy
+			 * time stamp
+			 * deduce->position
+			 */ 
+			qdcTop = traceTop.DoQDCSimple(pspmttime2, 120); /* baseline is re-calculated
+															 * between ch 0 to ch 20
+															 */  
+			qdcLeft = traceLeft.DoQDCSimple(pspmttime2, 120); 
+			qdcBottom = traceBottom.DoQDCSimple(pspmttime2, 120); 
+			qdcRight = traceRight.DoQDCSimple(pspmttime2, 120); 
+			qdcSum = traceSum.DoQDCSimple(pspmttime2, 120); // get total energy for 2nd signal
+
+			rx = qdcTop/traceSum.DoQDCSimple(pspmttime2, 120); /* raw position in ratio
+																*/ 
+			ry = qdcRight/traceSum.DoQDCSimple(pspmttime2, 120); 
+			rx *= 1000; 
+			ry *= 1000; 
+			plot(60, rx, ry); // 1960, raw position
+			posX = parX[0]*pow(rx,3) + parX[1]*pow(rx, 2) + parX[2]*rx + parX[3] + 0.5; 
+			posY = parY[0]*pow(ry,3) + parY[1]*pow(ry, 2) + parY[2]*ry + parY[3] + 0.5; 
+			px = trunc(posX); 
+			py = trunc(posY);
+			plot(62, px, py); // 1962
+			// 1-d position array
+			p1d = px + 24*py; 
+			qdcSum = traceSum.DoQDCSimple(1, 120); 
+			qdcSum /= 40.; 
+			if(p1d > 0 && p1d <=576) {
+				qdcSum *= pixelCalib[p1d]; 
+				plot(63, qdcSum, p1d); // 1963
+			}
+
+			pspmttime2 += pspmttime; 
+			if(has_mwpc) {
+				if(pe.Is_Implant()) { // first pspmt is implant
+					is_implant = false; // then the second one is not
+				} else if(mwpctime > pspmttime2) {
+					is_implant = false; 
+				} else {
+					is_implant = true; 
+				}
+			} else {
+				is_implant = false;
+			}
+			
+			pe.AssignValues(qdcSum, pspmttime2, px, py, is_implant); 
+			vecPixel.push_back(pe); 
+			pe.Clear(); 
+
 			/* Artificially merged traces
 			 */ 
 			// plot summed trace
@@ -913,70 +969,58 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(79, ittr-traceAnode[3].begin(), originalTraceNum, *ittr); // 1979
 			}
 			originalTraceNum++; 
-			/* filter time is assigned with respect
-			 * to the head of a trace
-			 */			
-			/* Now extract information from the 
-			 * second signal:
-			 * energy
-			 * time stamp
-			 * deduce->position
-			 */ 
-			qdcTop = traceTop.DoQDCSimple(time2, 120); /* baseline is re-calculated
-														* between ch 0 to ch 20
-														*/  
-			qdcLeft = traceLeft.DoQDCSimple(time2, 120); 
-			qdcBottom = traceBottom.DoQDCSimple(time2, 120); 
-			qdcRight = traceRight.DoQDCSimple(time2, 120); 
-
-			rx = qdcTop/traceSum.DoQDCSimple(time2, 120); /* raw position in ratio
-														   */ 
-			ry = qdcRight/traceSum.DoQDCSimple(time2, 120); 
-			rx *= 1000; 
-			ry *= 1000; 
-			plot(60, rx, ry); // 1960, raw position
-			int px, py; /* pixlated
-						 */ 
-			px = trunc(posX); 
-			py = trunc(posY);
-			plot(62, px, py); // 1962
-
 		} // end:has_pileup
-
+		
 		/* make ion-decay correlation
 		 */ 
-		if(on_pspmt) {
-			double psd = traceSum.DoPSD(1, 120); 
-			psd *= 100.; 
-			if(has_mwpc) { // is an implant
-				implantRecorder[p1d].AssignValues(qdcSum, pspmttime, px, py);
-				plot(41, psd); // 1941
-				for(int i = 0; i < 2; i++) {
-					decayRecorder[i][p1d].Clear(); 
+		
+		for(int i = 0; i < vecPixel.size(); i++) {
+			PixelEvent pe_ = vecPixel.at(i);
+			
+			int x_ = pe_.GetX(); 
+			int y_ = pe_.GetY(); 
+			int p1d_ = x_ + 24*y_; 
+			bool on_pspmt_ = (p1d_ >= 0 && p1d_ < 576); 
+			bool is_ion_ = pe_.Is_Implant(); 
+			
+			if(on_pspmt_) { // make sure it's within first 576 pixels
+				if(is_ion_) { // is an implant
+					implantRecorder[p1d_] = pe_; 
+					for(int i = 0; i < 2; i++) {
+						decayRecorder[i][p1d_].Clear(); 
+					}
+				} 
+				
+				else if(!has_veto) { // is a decay
+					if(!decayRecorder[0][p1d_].Is_Filled()
+					   && implantRecorder[p1d_].Is_Filled() ) {// 1nd generation of decay
+						decayRecorder[0][p1d_] = pe_; 
+						
+						double timeDiff = decayRecorder[0][p1d_].GetTime() - implantRecorder[p1d_].GetTime(); 
+						timeDiff *= Globals::get()->clockInSeconds(); 
+						// spectrum 1946-1950
+						plot(46, qdcSum, timeDiff*1e6); 
+						plot(47, qdcSum, timeDiff*1e5);
+						plot(48, qdcSum, timeDiff*1e4);
+						plot(49, qdcSum, timeDiff*1e3); 
+						plot(50, qdcSum, timeDiff*1e2);					
+					} else if(!decayRecorder[1][p1d_].Is_Filled()
+							  && implantRecorder[p1d_].Is_Filled() ) { // 2st generation of decay
+						decayRecorder[1][p1d_] = pe_; 
+					} else {
+						continue; 
+					}
 				}
-			} else if(!has_veto) { // is a decay
-				plot(42, psd); // 1942
-				if(!decayRecorder[0][p1d].Is_Filled()) {// 1nd generation of decay
-					decayRecorder[0][p1d].AssignValues(qdcSum, pspmttime, px, py); 
-					/* Make correlation to 
-					 * preceding ions
-					 */ 
-					double timeDiff = pspmttime - implantRecorder[p1d].GetTime(); 
-					timeDiff *= Globals::get()->clockInSeconds(); 
-					// spectrum 1946-1950
-					plot(46, qdcSum, timeDiff*1e6); 
-					plot(47, qdcSum, timeDiff*1e5);
-					plot(48, qdcSum, timeDiff*1e4);
-					plot(49, qdcSum, timeDiff*1e3); 
-					plot(50, qdcSum, timeDiff*1e2);					
-				} else if(!decayRecorder[1][p1d].Is_Filled()) { // 2st generation of decay
-					decayRecorder[1][p1d].AssignValues(qdcSum, pspmttime, px, py); 											
-				}
-			}
-		} // end:on_pspmt
-
+				
+			} // end:on_pspmt
+			pe_.Clear(); 
+		} // end:vecPixel
+		
+		vecPixel.clear(); 
+				
+		
 	} // end:canProcess
-
+	
 
 	
 	EndProcess();

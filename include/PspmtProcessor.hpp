@@ -94,32 +94,35 @@ class PixelEvent {
 private: 
 	double energy;
 	double time;
-	pair<double, double> rawPos; 
+	int x, y;  
+	bool is_implant; 
 public:
 	PixelEvent() {
 		energy = -1;
 		time = -1;
-		rawPos = make_pair(-1, -1); 
+		x = -1; y = -1; 
+		is_implant = false; 
 	}
 	~PixelEvent() {
 		energy = -1;
 		time = -1;
-		rawPos = make_pair(-1, -1); 
-
+		x = -1; y = -1; 
+		is_implant = false; 
 	}
 	void Clear() {
 		energy = -1;
 		time = -1;
-		rawPos = make_pair(-1, -1); 
-
+		x = -1; y = -1; 
+		is_implant = false;
 	}
 	bool Is_Filled() {
 		return (time > 0); 
 	}
-	void AssignValues(double e, double t, double x, double y) {
+	void AssignValues(double e, double t, int x_, int y_, bool b) {
 		energy = e; 
 		time = t; 
-		rawPos = make_pair(x, y); 
+		x = x_; y = y_; 
+		is_implant = b; 
 	}
 	double GetTime() {
 		return time; 
@@ -127,8 +130,15 @@ public:
 	double GetEnergy() {
 		return energy; 
 	}
-	pair<double, double> GetRawPos() {
-		return rawPos; 
+
+	bool Is_Implant() {
+		return is_implant; 
+	}
+	int GetX() {
+		return x; 
+	}
+	int GetY() {
+		return y; 
 	}
 };
 
