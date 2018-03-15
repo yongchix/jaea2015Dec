@@ -298,6 +298,8 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram1D(61, 8196, "Summed E"); // 1961
 	DeclareHistogram2D(62, 32, 32, "Pixlated PSPMT Map"); // 1962
 	DeclareHistogram2D(63, 4096, 1024, "Summed QDC vs. P1D"); // 1963
+	//	DeclareHistogram2D(64, 4096, 1024, "Second Summed QDC vs. P1D"); // 1964
+	//	DeclareHistogram2D(65, 2048, 2048, "Pile-Up traces, E1 vs. E2"); // 1965
 
 	/* trace analysis, from 1970 to 1979
 	 */
@@ -442,7 +444,6 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
     double threshold=250;
     double slope=0.0606;
     double intercept=10.13;
-    static int traceNum=-1;
     
     for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
          it != pspmtEvents.end(); it++) {
@@ -622,6 +623,7 @@ const double parY[4] = {1.5449e-7, -0.00011528, 0.084563, -5.1789};
 const double parX[4] = {1.67e-8, -2.49e-5, 4.11e-2, -4.91}; 
 const double parY[4] = {3.16e-8, -4.75e-5, 5.30e-2, -7.20}; 
 //
+static unsigned int traceNum = 0; 
 fstream outfile; 
 
 bool PspmtProcessor::Process(RawEvent &event){
@@ -819,10 +821,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 		qdcLeft = traceLeft.DoQDCSimple(1, 120); 
 		qdcBottom = traceBottom.DoQDCSimple(1, 120); 
 		qdcRight = traceRight.DoQDCSimple(1, 120); 
+		double qdcSum = traceSum.DoQDCSimple(1, 120); 
 		// position in ratio
 		double rx, ry; 
-		rx = qdcTop/traceSum.DoQDCSimple(1, 120); 
-		ry = qdcRight/traceSum.DoQDCSimple(1, 120); 
+		rx = qdcTop/qdcSum; 
+		ry = qdcRight/qdcSum; 
 		rx *= 1000; 
 		ry *= 1000; 
 		plot(60, rx, ry); // 1960, raw position
@@ -837,9 +840,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(62, px, py); // 1962
 		// 1-d position array
 		int p1d = px + 24*py; 
-		double qdcSum = traceSum.DoQDCSimple(1, 120); 
 		qdcSum /= 40.; 
-		if(p1d > 0 && p1d <=576) {
+		if(p1d > 0 && p1d <=576 && !has_pileup) { // for precise evaluation
 			qdcSum *= pixelCalib[p1d]; 
 			plot(63, qdcSum, p1d); // 1963
 		}
@@ -876,17 +878,15 @@ bool PspmtProcessor::Process(RawEvent &event){
 			 * time stamp
 			 * deduce->position
 			 */ 
-			qdcTop = traceTop.DoQDCSimple(pspmttime2, 120); /* baseline is re-calculated
-															 * between ch 0 to ch 20
-															 */  
-			qdcLeft = traceLeft.DoQDCSimple(pspmttime2, 120); 
-			qdcBottom = traceBottom.DoQDCSimple(pspmttime2, 120); 
-			qdcRight = traceRight.DoQDCSimple(pspmttime2, 120); 
-			qdcSum = traceSum.DoQDCSimple(pspmttime2, 120); // get total energy for 2nd signal
-
-			rx = qdcTop/traceSum.DoQDCSimple(pspmttime2, 120); /* raw position in ratio
-																*/ 
-			ry = qdcRight/traceSum.DoQDCSimple(pspmttime2, 120); 
+			double pulse2end = pspmttime2 + 70; 
+			qdcTop = traceTop.DoQDCSimple(pspmttime2, pulse2end); 
+			qdcLeft = traceLeft.DoQDCSimple(pspmttime2, pulse2end); 
+			qdcBottom = traceBottom.DoQDCSimple(pspmttime2, pulse2end); 
+			qdcRight = traceRight.DoQDCSimple(pspmttime2, pulse2end); 
+			qdcSum = traceSum.DoQDCSimple(pspmttime2, pulse2end); // get total energy for 2nd signal
+			
+			rx = qdcTop/qdcSum; 
+			ry = qdcRight/qdcSum; 
 			rx *= 1000; 
 			ry *= 1000; 
 			plot(60, rx, ry); // 1960, raw position
@@ -897,11 +897,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 			plot(62, px, py); // 1962
 			// 1-d position array
 			p1d = px + 24*py; 
-			qdcSum = traceSum.DoQDCSimple(1, 120); 
 			qdcSum /= 40.; 
 			if(p1d > 0 && p1d <=576) {
 				qdcSum *= pixelCalib[p1d]; 
 				plot(63, qdcSum, p1d); // 1963
+				//				plot(64, qdcSum, p1d); // 1964
 			}
 
 			pspmttime2 += pspmttime; 
@@ -921,60 +921,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 			vecPixel.push_back(pe); 
 			pe.Clear(); 
 
-			/* Artificially merged traces
-			 */ 
-			// plot summed trace
-			for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
-				plot(70, ittr-traceSum.begin(), summedTraceNum, *ittr); // 1970
-			}
-			summedTraceNum++; 
-			// summed anode traces for positioning
-			for(vector<int>::iterator it = traceTop.begin();
-				it != traceTop.end(); it++) {
-				plot(71, it-traceTop.begin(), anodeTraceNum[0], (*it)); // 1971, top
-			}
-			anodeTraceNum[0]++; 
-			for(vector<int>::iterator it = traceLeft.begin();
-				it != traceLeft.end(); it++) {
-				plot(72, it-traceLeft.begin(), anodeTraceNum[1], (*it)); // 1972, left
-			}
-			anodeTraceNum[1]++; 
-			for(vector<int>::iterator it = traceBottom.begin();
-				it != traceBottom.end(); it++) {
-				plot(73, it-traceBottom.begin(), anodeTraceNum[2], (*it)); // 1973, bottom
-			}
-			anodeTraceNum[2]++; 
-			for(vector<int>::iterator it = traceRight.begin();
-				it != traceRight.end(); it++) {
-				plot(74, it-traceRight.begin(), anodeTraceNum[3], (*it)); // 1974, right
-			}
-			anodeTraceNum[3]++; 
-			// plot dynode trace
-			for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
-				plot(75, ittr-traceDynode.begin(), dynodeTraceNum, *ittr); // 1975
-			}
-			dynodeTraceNum++; 
-			/* Original Traces
-			 */ 
-			for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
-				plot(76, ittr-traceAnode[0].begin(), originalTraceNum, *ittr); // 1976
-			}
-			for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
-				plot(77, ittr-traceAnode[1].begin(), originalTraceNum, *ittr); // 1977
-			}
-			for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
-				plot(78, ittr-traceAnode[2].begin(), originalTraceNum, *ittr); // 1978
-			}
-			for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
-				plot(79, ittr-traceAnode[3].begin(), originalTraceNum, *ittr); // 1979
-			}
-			originalTraceNum++; 
 		} // end:has_pileup
 		
 		/* make ion-decay correlation
 		 */ 
 		
-		for(int i = 0; i < vecPixel.size(); i++) {
+		for(int i = 0; i < 1; i++) { // artificially ignore second signal
 			PixelEvent pe_ = vecPixel.at(i);
 			
 			int x_ = pe_.GetX(); 
@@ -982,6 +934,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 			int p1d_ = x_ + 24*y_; 
 			bool on_pspmt_ = (p1d_ >= 0 && p1d_ < 576); 
 			bool is_ion_ = pe_.Is_Implant(); 
+			double energy_ = pe_.GetEnergy(); 
 			
 			if(on_pspmt_) { // make sure it's within first 576 pixels
 				if(is_ion_) { // is an implant
@@ -999,11 +952,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 						double timeDiff = decayRecorder[0][p1d_].GetTime() - implantRecorder[p1d_].GetTime(); 
 						timeDiff *= Globals::get()->clockInSeconds(); 
 						// spectrum 1946-1950
-						plot(46, qdcSum, timeDiff*1e6); 
-						plot(47, qdcSum, timeDiff*1e5);
-						plot(48, qdcSum, timeDiff*1e4);
-						plot(49, qdcSum, timeDiff*1e3); 
-						plot(50, qdcSum, timeDiff*1e2);					
+						plot(46, energy_, timeDiff*1e6); 
+						plot(47, energy_, timeDiff*1e5);
+						plot(48, energy_, timeDiff*1e4);
+						plot(49, energy_, timeDiff*1e3); 
+						plot(50, energy_, timeDiff*1e2);					
 					} else if(!decayRecorder[1][p1d_].Is_Filled()
 							  && implantRecorder[p1d_].Is_Filled() ) { // 2st generation of decay
 						decayRecorder[1][p1d_] = pe_; 
@@ -1015,6 +968,64 @@ bool PspmtProcessor::Process(RawEvent &event){
 			} // end:on_pspmt
 			pe_.Clear(); 
 		} // end:vecPixel
+
+		if(vecPixel.size() == 2) {
+			//			if(!vecPixel.at(0).Is_Implant() && !vecPixel.at(1).Is_Implant()) {
+			if(!has_mwpc) {
+				double e1 = vecPixel.at(0).GetEnergy(); 
+				int x1 = vecPixel.at(0).GetX(); 
+				int y1 = vecPixel.at(0).GetY(); 
+				double e2 = vecPixel.at(1).GetEnergy(); 
+				int x2 = vecPixel.at(1).GetX(); 
+				int y2 = vecPixel.at(1).GetY(); 
+				if(x1 == x2 && y1 == y2) {
+					//					plot(65, e1, e2); // 1965
+					/* Plot involved traces 
+					 */ 
+					// plot summed trace
+					for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
+						plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
+					}
+					// summed anode traces for positioning
+					for(vector<int>::iterator it = traceTop.begin();
+						it != traceTop.end(); it++) {
+						plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
+					}
+					for(vector<int>::iterator it = traceLeft.begin();
+						it != traceLeft.end(); it++) {
+						plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
+					}
+					for(vector<int>::iterator it = traceBottom.begin();
+						it != traceBottom.end(); it++) {
+						plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
+					}
+					for(vector<int>::iterator it = traceRight.begin();
+						it != traceRight.end(); it++) {
+						plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
+					}
+					// plot dynode trace
+					for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+						plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
+					}
+					/* Original Traces
+					 */ 
+					for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+						plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+					}
+					for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+						plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+					}
+					for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+						plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+					}
+					for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+						plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+					}
+					traceNum++;
+					cout << "This is pile-up trace No. " << traceNum << endl;
+				}
+			}
+		}
 		
 		vecPixel.clear(); 
 				
