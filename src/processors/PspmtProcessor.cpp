@@ -198,12 +198,13 @@ void PspmtProcessor::DeclarePlots(void) {
 	const int corrBins     = 2048;
   
 	// Raw 0-29
+	/*
     DeclareHistogram1D(D_RAW1, energyBins, "Pspmt1 Raw");
     DeclareHistogram1D(D_RAW2, energyBins, "Pspmt2 Raw");
     DeclareHistogram1D(D_RAW3, energyBins, "Pspmt3 Raw");
     DeclareHistogram1D(D_RAW4, energyBins, "Pspmt4 Raw");
     DeclareHistogram1D(D_RAWD, energyBins, "Pspmt Dynode");
-	/* commented out by YX */
+	*/
 	/*
     DeclareHistogram1D(D_SUM,  energyBins, "Pspmt Sum");
     DeclareHistogram2D(DD_POS1_RAW, mapBins, mapBins, "Pspmt Pos1 Raw"); // 1906
@@ -211,11 +212,17 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
     DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
 	*/
+	/*
 	DeclareHistogram2D(6, 1024, 1024, "2-D map of all signals, reproduced - I"); // 1906
 	DeclareHistogram2D(7, 1024, 1024, "2-D map of all signals, reproduced - II"); // 1907
 	DeclareHistogram2D(8, 32, 32, "Pixelized  2-D map, reproduced - I"); // 1908
 	DeclareHistogram2D(9, 32, 32, "Pixelized 2-D map, reproduced - II"); // 1909
-	
+	*/
+	// spectra 1900s
+	DeclareHistogram1D(1, 16, "Accumulation of ions vs. decays"); // 1901
+	DeclareHistogram1D(2, 16, "Replica of 1901"); // 1902
+	DeclareHistogram2D(3, 2048, 2048, "MAP by on-board energy"); // 1903
+
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE3, energyBins, "Energy3 from trace");
@@ -278,9 +285,8 @@ void PspmtProcessor::DeclarePlots(void) {
 	/* for time-energy correlation
 	 * damm ID = 1940-1949
 	 */ 
-	DeclareHistogram1D(40, 128, "PSD, all signals"); // 1940
-	DeclareHistogram1D(41, 128, "PSD, ions"); // 1941
-	DeclareHistogram1D(42, 128, "PSD, decays"); // 1942	
+	DeclareHistogram2D(41, 2048, 1024, "Energy vs. P1D, ions"); // 1941
+	DeclareHistogram2D(42, 2048, 1024, "Energy vs. P1D, decays"); // 1942
 	//
 	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
 	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
@@ -403,8 +409,7 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_ENE_QDC_DECAY, energyBins, energyBins,"[Decay] Ech vs QDC");
 	DeclareHistogram2D(DD_ENE_QDC_IMPLANT, energyBins, energyBins,"[Implantation] Ech vs QDC");
     
-    
-    DeclareHistogram2D(DD_P1D_QDCCAL, energyBins,Bins, "QDC cal");
+	DeclareHistogram2D(DD_P1D_QDCCAL, energyBins,Bins, "QDC cal");
 
     DeclareHistogram2D(DD_QDCREG_SPECIFIC, regBins, regBins,"REG1 vs REG2 (Specific region)");   
 
@@ -416,193 +421,36 @@ bool PspmtProcessor::PreProcess(RawEvent &event){
 		return false;
     
     static const vector<ChanEvent*> &pspmtEvents = sumMap["pspmt"]->GetList();
-    
-    data_.Clear();
-    
-    double q1  =0,q2  =0,q3  =0,q4  =0,qd  =0;
-    double qdc1=0,qdc2=0,qdc3=0,qdc4=0,qdcd=0;
-    double tre1=0,tre2=0,tre3=0,tre4=0,tred=0;
-    
-    double qright=0,qleft=0,qtop=0,qbottom=0,qsum=0;
-    double xright=0,xleft=0,ytop=0,ybottom=0;
-    
-    double qtre_r=0,qtre_l=0,qtre_t=0,qtre_b=0,qtre_s=0;
-    double xtre_r=0,xtre_l=0,ytre_t=0,ytre_b=0;
-    
-    double qqdc_r=0,qqdc_l=0,qqdc_t=0,qqdc_b=0,qqdc_s=0;
-    double xqdc_r=0,xqdc_l=0,yqdc_t=0,yqdc_b=0;
-    
-    double pxright=0,pxleft=0,pytop=0,pybottom=0;
-    double pxtre_r=0,pxtre_l=0,pytre_t=0,pytre_b=0;
-	// add by YX
-	double pxqdc_r=0,pxqdc_l=0,pyqdc_t=0,pyqdc_b=0;
+	int  mult_pspmt = event.GetSummary("pspmt",true)->GetMult();
+	int  mult_mwpc  = event.GetSummary("mcp",true)->GetMult();
 
-    double diff;
- 
-    // tentatively local params //
-    double threshold=250;
-    double slope=0.0606;
-    double intercept=10.13;
-    
-    for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
-         it != pspmtEvents.end(); it++) {
-        
-        ChanEvent *chan   = *it;
-        string subtype    = chan->GetChanID().GetSubtype();
-        int    ch         = chan->GetChanID().GetLocation();
-        double calEnergy  = chan->GetCalEnergy();
-		Trace trace       = chan->GetTrace();
-        double trace_energy;
-        double trace_time;
-        double baseline;
-        double qdc;	
+	bool has_mwpc = false;
+	bool has_pspmt = false;
+	bool is_ion = false;
+	bool is_decay = false;
+	bool incomplete_ion = false; 
+	bool incomplete_decay = false; 
+
+	if(mult_mwpc > 0) has_mwpc = true; 
+	if(mult_pspmt == 5) has_pspmt = true; 
 	
-		if(trace.HasValue("filterEnergy")){	  
-			trace_time    = trace.GetValue("filterTime");
-			trace_energy  = trace.GetValue("filterEnergy");
-			baseline      = trace.DoBaseline(2,20);
-			qdc           = trace.DoQDCSimple(20,140);
-			if(ch==0){
-                qdc1 = qdc/10;
-                tre1 = trace_energy;
-                plot(D_QDC_TRACE1,qdc1);
-                plot(D_ENERGY_TRACE1,tre1);
-            }else if(ch==1){
-                qdc2 = qdc/10;
-                tre2 = trace_energy; 
-                plot(D_QDC_TRACE2,qdc2);
-                plot(D_ENERGY_TRACE2,tre2);
-            }else if(ch==2){
-                qdc3 = qdc/10;
-                tre3 = trace_energy; 
-                plot(D_QDC_TRACE3,qdc3);
-                plot(D_ENERGY_TRACE3,tre3);
-            }else if(ch==3){
-                qdc4 = qdc/10;
-                tre4 = trace_energy; 	  
-                plot(D_QDC_TRACE4,qdc4);
-                plot(D_ENERGY_TRACE4,tre4);
-            }else if(ch==4){
-                qdcd = qdc;
-                tred = trace_energy; 
-				plot(D_QDC_TRACED,qdcd/10);
-                plot(D_ENERGY_TRACED,tred);
-				//				plot(DD_TRACE_E_QDC,tred,qdcd/10);
-			}
-        }
-		
-		
-		// below is dealing with on-board energy
-		/*
-        if(ch==0){
-            q1 = calEnergy;
-            plot(D_RAW1,q1);
-        }else if(ch==1){
-            q2 = calEnergy;
-            plot(D_RAW2,q2);
-        }else if(ch==2){
-            q3 = calEnergy;
-            plot(D_RAW3,q3);
-        }else if(ch==3){
-            q4 = calEnergy;
-            plot(D_RAW4,q4);
-        }else if(ch==4){
-            qd = calEnergy;
-            plot(D_RAWD,qd);
-        }
-		*/
-        /*
-        if(q1>0 && q2>0 && q3>0 && q4>0){
-		// q2     q1
-		// 
-		// 
-		// q3     q4
-		//
-		// energy on the border
-		    qtop    = (q1+q2)/2;
-			qleft   = (q2+q3)/2;
-			qbottom = (q3+q4)/2;
-			qright  = (q4+q1)/2;
-			// deduce the position          
-            qsum    = (q1+q2+q3+q4)/2;
-            xright  = (qright/qsum)*512+100;
-            xleft   = (qleft/qsum)*512+100;
-            ytop    = (qtop/qsum)*512+100;
-            ybottom = (qbottom/qsum)*512+100;
-            plot(D_SUM,qsum);
-        }
+	if(has_pspmt) {
+		if(has_mwpc) is_ion = true; 
+		else is_decay = true; 
+	} else {
+		if(has_mwpc) incomplete_ion = true; 
+		else incomplete_decay = true; 
+	}
 
-        if(q1>threshold && q2>threshold && q3>threshold && q4>threshold ){
-            pxleft   = trunc(slope*xleft-intercept);
-            pxright  = trunc(slope*xright-intercept);
-            pytop    = trunc(slope*ytop-intercept);
-            pybottom = trunc(slope*ybottom-intercept);
-            
-            plot(DD_POS1_RAW,xright,ytop); // 1906
-            plot(DD_POS2_RAW,xleft,ybottom); // 1907
-            plot(DD_POS1,pxright,pytop); // 1908
-            plot(DD_POS2,pxleft,pybottom); // 1909
-	    
-		}
-		*/
-		
+	// see accumulation of different signals
+	// id=1901
+	if(is_ion) plot(1, 2); 
+	if(is_decay) plot(1, 4); 
+	if(incomplete_ion) plot(1, 6); 
+	if(incomplete_decay) plot(1, 8); 
 
-		// below are energy from in-code filters        
-		/*
-        if(tre1>0 && tre2>0 && tre3>0 && tre4>0 ){
-            qtre_t=(tre1+tre2)/2;
-            qtre_l=(tre2+tre3)/2;
-            qtre_b=(tre3+tre4)/2;
-            qtre_r=(tre4+tre1)/2;
-            qtre_s=(tre1+tre2+tre3+tre4)/2;
-            
-            xtre_r=(qtre_r/qtre_s)*512+100;
-            xtre_l=(qtre_l/qtre_s)*512+100;
-            ytre_t=(qtre_t/qtre_s)*512+100;
-            ytre_b=(qtre_b/qtre_s)*512+100;
-            
-            pxtre_r = trunc(slope*xtre_r-intercept);
-            pxtre_l = trunc(slope*xtre_l-intercept);
-            pytre_t = trunc(slope*ytre_t-intercept);
-            pytre_b = trunc(slope*ytre_b-intercept);
-                        
-            plot(D_ENERGY_TRACESUM,qtre_s); // 1915
-	    
-            if(tre1>threshold && tre2>threshold && tre3>threshold && tre4>threshold ){
-				plot(DD_POS1_RAW_TRACE,xtre_r,ytre_t); // 1916
-				plot(DD_POS2_RAW_TRACE,xtre_l,ytre_b);
-				plot(DD_POS1_TRACE,pxtre_r,pytre_t);
-				plot(DD_POS2_TRACE,pxtre_l,pytre_b);
-            }    
-        }
-		*/
-        
-		// below are processing of QDC
-		if(qdc1>0 && qdc2>0 && qdc3>0 && qdc4>0 ){
-            qqdc_t = (qdc1+qdc2)/2;
-            qqdc_l = (qdc2+qdc3)/2;
-            qqdc_b = (qdc3+qdc4)/2;
-            qqdc_r = (qdc4+qdc1)/2;
-            qqdc_s = (qqdc_t+qqdc_l+qqdc_b+qqdc_r)/2;
-			
-            xqdc_r = (qqdc_r/qqdc_s)*512+100;
-            xqdc_l = (qqdc_l/qqdc_s)*512+100;
-            yqdc_t = (qqdc_t/qqdc_s)*512+100;
-            yqdc_b = (qqdc_b/qqdc_s)*512+100;
 
-			pxqdc_r = trunc(slope*xqdc_r-intercept);
-            pxqdc_l = trunc(slope*xqdc_l-intercept);
-            pyqdc_t = trunc(slope*yqdc_t-intercept);
-            pyqdc_b = trunc(slope*yqdc_b-intercept);
-            
-			// by YX
-			plot(16, xqdc_r, yqdc_t); // 1916
-			plot(17, xqdc_l, yqdc_b); // 1917
-			plot(18, pxqdc_r, pyqdc_t); // 1918
-			plot(19, pxqdc_l, pyqdc_b); // 1919
-        }
-        
-    } // end of one channel event
+    data_.Clear();
     
     EndProcess();
 	return(true);
@@ -731,45 +579,80 @@ bool PspmtProcessor::Process(RawEvent &event){
 	 */ 
 	// by Yongchi Xiao, 03/07/2018
 	Trace traceAnode[4], traceDynode; 
-	double energyAnode[4] = {0, 0, 0, 0}; 
-	double energyAnodeTotal = 0; 
+	double onboardEnergy[5] = {0, 0, 0, 0, 0}; 
 
 	if(has_pspmt) { /* all anodes and dynodes fires, exactly equal to 5
 					 * BUT this does not mean all five channels has 
 					 * proper filtered energy or well-recorded trace
 					 */ 
+		// sanity check 1902
+		if(has_mwpc) plot(2, 2); 
+		else plot(2, 4); 
+
 		for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
 			 it != pspmtEvents.end(); it++) {        
 			ChanEvent *chan = *it; 
 			int ch = chan->GetChanID().GetLocation();
 			Trace tr = chan->GetTrace(); 
 			pspmttime = chan->GetTime(); 
-			if(ch < 4 
-			   && tr.size() > 0) {
-				traceAnode[ch] = tr; 
-				energyAnode[ch] = chan->GetCalEnergy(); 
-			} 
-			if(ch == 4 
-			   && tr.size() > 0) {
-				traceDynode = tr; 
-				//				if(tr.GetValue("numPulses") > 1) has_pileup = true; 
+			if(ch < 4) {
+				/*
+				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
+				else if(tr.size() > 0) traceAnode[ch] = tr; 
+				*/
+				
+				onboardEnergy[ch] = chan->GetCalEnergy(); 
+				if(tr.size() > 0) traceAnode[ch] = tr; 
+				
+			}
+			if(ch == 4) {
+				/*
+				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
+				else if(tr.size() > 0) traceDynode = tr; 
+				*/
+				onboardEnergy[ch] = chan->GetCalEnergy(); 
+				if(tr.size() > 0) traceDynode = tr; 
+				
 			}
 		}
 	}
 
-	/* Sanity check
-	 */ 
+	// deal with on-board deduced signals only
+	double onboardEnergyCheck = 1; 
+	bool onboard_good = false; 
+	for(int i = 0; i < 4; i++) {
+		onboardEnergyCheck *= onboardEnergy[i]; 
+	}
+	if(onboardEnergy > 0) onboard_good = true; 
+	if(onboard_good && has_pspmt) {
+		double eSum, eTop, eLeft, eBottom, eRight; 
+		eSum = onboardEnergy[0] + onboardEnergy[1] + onboardEnergy[2] + onboardEnergy[3];
+		eTop = onboardEnergy[0] + onboardEnergy[1]; 
+		eLeft = onboardEnergy[1] + onboardEnergy[2]; 
+		eBottom = onboardEnergy[2] + onboardEnergy[3]; 
+		eRight = onboardEnergy[3] + onboardEnergy[0]; 
+		
+		double orx = eTop/eSum; 
+		double ory = eRight/eSum; 
+		orx *= 1250; 
+		ory *= 1250; 
+		orx += 500; 
+		ory += 500; 
+		plot(3, orx, ory); // 1903, raw position
+	}
+
+	// sanity check
 	for(int i = 0; i < 4; i++) {
 		all_trace_length *= traceAnode[i].size(); 
 	}
-
 	if(all_trace_length > 0) {
 		canProcess = true;
 	} 
 
-	if(canProcess) { /* All pspmt channels fired 
-					  * and all have valid traces
-					  */ 
+	// now process decay signals only
+	if(canProcess && !has_mwpc) { /* All pspmt channels fired 
+								   * and all have valid traces
+								   */ 
 		vector<PixelEvent> vecPixel; 
 		Trace traceSum, traceTop, traceBottom, traceLeft, traceRight; 
 		
@@ -835,6 +718,13 @@ bool PspmtProcessor::Process(RawEvent &event){
 			plot(63, qdcSum, p1d); // 1963
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 
+			// record implant
+			if(has_mwpc) {
+				implantRecorder[p1d].AssignValues(qdcSum, pspmttime, px, py, has_pileup); 
+				plot(41, qdcSum, p1d); // 1941
+			} else {
+				plot(42, qdcSum, p1d); // 1942
+			}
 		}
 
 		if(has_pileup) {
@@ -874,20 +764,20 @@ bool PspmtProcessor::Process(RawEvent &event){
 					plot(62, px2, py2); // 1962
 					int p1d2; 					
 					p1d2 = px2 + 24*py2; 
-					if(p1d2 > 0 && p1d2 <=576) {
+					bool samePixel = false; 
+					if(p1d2 > 0 && p1d2 <=576) { // position is reasonable
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
 						plot(63, qdcSum2, p1d); // 1963
 						pspmttime2 += pspmttime;
 						PixelEvent pe; 
 						pe.AssignValues(qdcSum2, pspmttime2, px2, py2, has_mwpc); 
-						vecPixel.push_back(pe); 
+						vecPixel.push_back(pe);
+						if(p1d2 == (vecPixel.at(0).GetX() + vecPixel.at(0).GetY()*24)) {
+							samePixel = true; 
+						}
+
 					}
-
-
-					bool samePixel = false; 
-					if(p1d2 == (vecPixel.at(0).GetX() + vecPixel.at(0).GetY()*24)
-					   && p1d2 > 0 && p1d2 <= 576) samePixel = true;
 
 					if(samePixel) {
 						if(qdcSum*4 > 3500) {
@@ -944,7 +834,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 						outfile << traceNum++ << "  " 
 								<< qdcSum*4 << "  " 
 								<< qdcSum2*4 << "  " 
-								<< px << "  " << py << endl;
+								<< px << "  " << py << "  " 
+								<< (pspmttime - mwpctime)*Globals::get()->clockInSeconds() << "  " 
+								<< (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds() << "  "
+								<< implantRecorder[p1d].Is_Implant() << "  "  
+								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
+								<< endl;
 						outfile.close(); 
 						plot(64, qdcSum, qdcSum2); // 1964
 					} // end:(samePixel)					
