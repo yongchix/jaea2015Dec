@@ -220,8 +220,8 @@ void PspmtProcessor::DeclarePlots(void) {
 	*/
 	// spectra 1900s
 	DeclareHistogram1D(1, 16, "Accumulation of ions vs. decays"); // 1901
-	DeclareHistogram1D(2, 16, "Replica of 1901"); // 1902
-	DeclareHistogram2D(3, 2048, 2048, "MAP by on-board energy"); // 1903
+	DeclareHistogram2D(2, 32, 32, "Pixelated Map of Ions"); // 1902
+	DeclareHistogram2D(3, 2048, 2048, "Raw Map of Ions"); // 1903
 
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
@@ -285,24 +285,18 @@ void PspmtProcessor::DeclarePlots(void) {
 	/* for time-energy correlation
 	 * damm ID = 1940-1949
 	 */ 
-	DeclareHistogram2D(41, 2048, 1024, "Energy vs. P1D, ions"); // 1941
-	DeclareHistogram2D(42, 2048, 1024, "Energy vs. P1D, decays"); // 1942
-	//
+	DeclareHistogram2D(41, 2048, 1024, "Energy (4 keV/ch) vs. P1D"); // 1941
 	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
 	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
 	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1948
 	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
 	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
 
-
-	// correlation matrix, from 1960 to 1969
-	//	DeclareHistogram2D(61, 2048, 2048, "Decay Correlation Matrix, 4 keV/ch"); // 1961
-	/* Position information
-	 * and energy calibration
+	/* Decays only 
+	 * 1960s
 	 */ 
 	DeclareHistogram2D(60, 1024, 1024, "Raw position in percentage"); // 1960 
-	DeclareHistogram1D(61, 8196, "Summed E"); // 1961
-	DeclareHistogram2D(62, 32, 32, "Pixlated PSPMT Map"); // 1962
+	DeclareHistogram2D(62, 32, 32, "Pixlated Map of Decays"); // 1962
 	DeclareHistogram2D(63, 4096, 1024, "Summed QDC vs. P1D"); // 1963
 	DeclareHistogram2D(64, 2048, 2048, "Pile-Up traces, E1 vs. E2, same pixel"); // 1964
 
@@ -467,6 +461,9 @@ const double parY[4] = {1.5449e-7, -0.00011528, 0.084563, -5.1789};
 const double parX[4] = {1.67e-8, -2.49e-5, 4.11e-2, -4.91}; 
 const double parY[4] = {3.16e-8, -4.75e-5, 5.30e-2, -7.20}; 
 //
+const double parXIon[4] = {1.27e-8, -4.25e-5, 6.94e-2, -3.08e1}; 
+const double parYIon[4] = {1.82e-8, -6.15e-5, 9.2e-2, -4.03e1}; 
+
 static unsigned int traceNum = 0; 
 fstream outfile; 
 
@@ -497,7 +494,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	int  mult_mwpc  = event.GetSummary("mcp",true)->GetMult();
 	int  mult_nai   = event.GetSummary("nai",true)->GetMult();
 	// by YX
-	bool canProcess = false;
+	bool canProcessDecays = false;
 	double all_trace_length = 1; 
 
 	if(mult_pspmt==5){
@@ -585,10 +582,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 					 * BUT this does not mean all five channels has 
 					 * proper filtered energy or well-recorded trace
 					 */ 
-		// sanity check 1902
-		if(has_mwpc) plot(2, 2); 
-		else plot(2, 4); 
-
 		for (vector<ChanEvent*>::const_iterator it = pspmtEvents.begin();
 			 it != pspmtEvents.end(); it++) {        
 			ChanEvent *chan = *it; 
@@ -596,28 +589,26 @@ bool PspmtProcessor::Process(RawEvent &event){
 			Trace tr = chan->GetTrace(); 
 			pspmttime = chan->GetTime(); 
 			if(ch < 4) {
-				/*
 				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
 				else if(tr.size() > 0) traceAnode[ch] = tr; 
-				*/
-				
+				/*
 				onboardEnergy[ch] = chan->GetCalEnergy(); 
 				if(tr.size() > 0) traceAnode[ch] = tr; 
-				
+				*/
 			}
 			if(ch == 4) {
-				/*
 				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
 				else if(tr.size() > 0) traceDynode = tr; 
-				*/
+				/*
 				onboardEnergy[ch] = chan->GetCalEnergy(); 
 				if(tr.size() > 0) traceDynode = tr; 
-				
+				*/
 			}
 		}
 	}
 
-	// deal with on-board deduced signals only
+	/* Deal with Ions only
+	 */ 
 	double onboardEnergyCheck = 1; 
 	bool onboard_good = false; 
 	for(int i = 0; i < 4; i++) {
@@ -639,20 +630,34 @@ bool PspmtProcessor::Process(RawEvent &event){
 		orx += 500; 
 		ory += 500; 
 		plot(3, orx, ory); // 1903, raw position
+		double posXIon, posYIon; 
+		posXIon = parXIon[0]*pow(orx, 3) + parXIon[1]*pow(orx, 2) 
+			+ parXIon[2]*pow(orx, 1) + parXIon[3] + 0.5; 
+		posYIon = parYIon[0]*pow(ory, 3) + parYIon[1]*pow(ory, 2) 
+			+ parYIon[2]*pow(ory, 1) + parYIon[3] + 0.5; 
+		int pxIon, pyIon; 
+		pxIon = trunc(posXIon); 
+		pyIon = trunc(posYIon); 
+		plot(2, pxIon, pyIon); // 1902, pixlated map
+		int p1dIon = pxIon + 24*pyIon; 
+		if(p1dIon >= 0 && p1dIon < 576) {
+			PixelEvent pe; 
+			pe.AssignValues(eSum, pspmttime, pxIon, pyIon, has_mwpc); 
+			implantRecorder[p1dIon] = pe; 
+		}
 	}
 
-	// sanity check
+	/* Deal with decays only
+	 */ 
 	for(int i = 0; i < 4; i++) {
 		all_trace_length *= traceAnode[i].size(); 
 	}
 	if(all_trace_length > 0) {
-		canProcess = true;
+		canProcessDecays = true;
 	} 
-
-	// now process decay signals only
-	if(canProcess && !has_mwpc) { /* All pspmt channels fired 
-								   * and all have valid traces
-								   */ 
+	if(canProcessDecays) { /* All pspmt channels fired 
+							* and all have valid traces
+							*/ 
 		vector<PixelEvent> vecPixel; 
 		Trace traceSum, traceTop, traceBottom, traceLeft, traceRight; 
 		
@@ -711,20 +716,13 @@ bool PspmtProcessor::Process(RawEvent &event){
 		py = trunc(posY);
 		plot(62, px, py); // 1962
 		int p1d = px + 24*py; 		// unique 1-d position
-		if(p1d > 0 && p1d <=576 ) {
+		if(p1d >= 0 && p1d < 576 ) {
 			PixelEvent pe;
 			qdcSum /= 40.; 
 			qdcSum *= pixelCalib[p1d]; 
 			plot(63, qdcSum, p1d); // 1963
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
-			vecPixel.push_back(pe); 
-			// record implant
-			if(has_mwpc) {
-				implantRecorder[p1d].AssignValues(qdcSum, pspmttime, px, py, has_pileup); 
-				plot(41, qdcSum, p1d); // 1941
-			} else {
-				plot(42, qdcSum, p1d); // 1942
-			}
+			vecPixel.push_back(pe); 			
 		}
 
 		if(has_pileup) {
@@ -835,7 +833,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 								<< qdcSum*4 << "  " 
 								<< qdcSum2*4 << "  " 
 								<< px << "  " << py << "  " 
-								<< (pspmttime - mwpctime)*Globals::get()->clockInSeconds() << "  " 
 								<< (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds() << "  "
 								<< implantRecorder[p1d].Is_Implant() << "  "  
 								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
@@ -849,64 +846,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 			}
 		} // end:has_pileup
 
-		
-		/* make ion-decay correlation
-		 */ 		
-		/*
-		for(int i = 0; i < 1; i++) { // artificially ignore second signal
-			PixelEvent pe_ = vecPixel.at(i);
-			
-			int x_ = pe_.GetX(); 
-			int y_ = pe_.GetY(); 
-			int p1d_ = x_ + 24*y_; 
-			bool on_pspmt_ = (p1d_ >= 0 && p1d_ < 576); 
-			bool is_ion_ = pe_.Is_Implant(); 
-			double energy_ = pe_.GetEnergy(); 
-			
-			if(on_pspmt_) { // make sure it's within first 576 pixels
-				if(is_ion_) { // is an implant
-					implantRecorder[p1d_] = pe_; 
-					for(int i = 0; i < 2; i++) {
-						decayRecorder[i][p1d_].Clear(); 
-					}
-				} 
-				
-				else if(!has_veto) { // is a decay
-					if(!decayRecorder[0][p1d_].Is_Filled()
-					   && implantRecorder[p1d_].Is_Filled() ) {// 1nd generation of decay
-						decayRecorder[0][p1d_] = pe_; 
-						
-						double timeDiff = decayRecorder[0][p1d_].GetTime() - implantRecorder[p1d_].GetTime(); 
-						timeDiff *= Globals::get()->clockInSeconds(); 
-						// spectrum 1946-1950
-						plot(46, energy_, timeDiff*1e6); 
-						plot(47, energy_, timeDiff*1e5);
-						plot(48, energy_, timeDiff*1e4);
-						plot(49, energy_, timeDiff*1e3); 
-						plot(50, energy_, timeDiff*1e2);					
-					} else if(!decayRecorder[1][p1d_].Is_Filled()
-							  && implantRecorder[p1d_].Is_Filled() ) { // 2st generation of decay
-						decayRecorder[1][p1d_] = pe_; 
-					} else {
-						continue; 
-					}
-				}
-				
-			} // end:on_pspmt
-			pe_.Clear(); 
-		} // end:vecPixel
-		*/
-		if(vecPixel.size() == 2) {
-			//			if(!vecPixel.at(0).Is_Implant() && !vecPixel.at(1).Is_Implant()) {
-			if(!has_mwpc) {
-				double e1 = vecPixel.at(0).GetEnergy(); 
-				int x1 = vecPixel.at(0).GetX(); 
-				int y1 = vecPixel.at(0).GetY(); 
-				double e2 = vecPixel.at(1).GetEnergy(); 
-				int x2 = vecPixel.at(1).GetX(); 
-				int y2 = vecPixel.at(1).GetY(); 
-			}
-		}
 		
 		vecPixel.clear(); 
 				
