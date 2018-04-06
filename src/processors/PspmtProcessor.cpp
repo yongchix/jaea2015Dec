@@ -531,9 +531,6 @@ bool PspmtProcessor::Process(RawEvent &event){
   	int p1d;
 	double threshold=0;
 	
-	// by Yongchi Xiao, for PSD purpose, 03/06/2018
-	double psd = 0; 
-
 	double static pspmttime;
 	double static mwpctime;
 	double mwpcene;
@@ -733,8 +730,15 @@ bool PspmtProcessor::Process(RawEvent &event){
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 			
 			decayRecorder[0][p1d] = pe; 
+			/*
+			if(!has_veto) { // do PSD for Am-241 alpha-particle
+				double psd = traceSum.DoPSD(traceDynode.GetValue("filterTime")-1, 90); 
+				plot(32, psd*100); // 1932
+			}
+			*/
+
 			// ion-decay correlations
-			if(implantRecorder[p1d].Is_Filled()) {
+			if(!has_pileup && implantRecorder[p1d].Is_Filled()) {
 				double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
 				plot(45, qdcSum, Dt*1.e6); // 1945
 				plot(46, qdcSum, Dt*1.e5); // 1946
@@ -742,6 +746,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(48, qdcSum, Dt*1.e3); // 1948
 				plot(49, qdcSum, Dt*1.e2); // 1949				
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
+					/*
 					outfile.open((runName + ".scanout").c_str(), 
 								 std::iostream::out | std::iostream::app); 
 					outfile << px << "  " 
@@ -750,6 +755,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 							<< qdcSum << "  " 
 							<< Dt << endl;
 					outfile.close(); 
+					*/
+					if(Dt*1.e6 <= 70 && !has_veto) { // do PSD for fast component
+						double psd = traceSum.DoPSD(traceDynode.GetValue("filterTime")-1, 90); 
+						plot(32, psd*100); // 1932
+					}
 				}// end:a centain group
 			}
 		}
@@ -813,6 +823,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(48, qdcSum2, Dt*1.e3); // 1948
 								plot(49, qdcSum2, Dt*1.e2); // 1949				
 								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
+									/*
 									outfile.open((runName + ".scanout").c_str(), 
 												 std::iostream::out | std::iostream::app); 
 									outfile << px2 << "  " 
@@ -821,6 +832,13 @@ bool PspmtProcessor::Process(RawEvent &event){
 											<< qdcSum2 << "  " 
 											<< Dt << endl;
 									outfile.close(); 
+									*/
+									/*
+									if(Dt*1.e6 <= 150) { // do PSD for fast component
+										double psd = traceSum.DoPSD(traceDynode.GetValue("filterTime2")-1, 90); 
+										plot(32, psd*100); // 1932
+									}
+									*/
 								}// end:a certain group
 							}
 						}// end:!samePixel

@@ -349,8 +349,8 @@ double Trace::DoPSD(unsigned int lo, unsigned int numBins) {
 		return pixie::U_DELIMITER; 
 
 	double baseline = DoBaseline(0, 20); 
-	double pulseQDC = DoQDCSimple(lo, numBins); 
-	double tailQDC = DoQDCTail(lo, numBins); 
+	double pulseQDC = DoQDCSimple(lo, high); // head-end
+	double tailQDC = DoQDCTail(lo, numBins); // head-length
 
 	double psd = tailQDC/pulseQDC; 
 
