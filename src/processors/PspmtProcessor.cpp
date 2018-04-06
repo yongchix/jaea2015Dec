@@ -286,11 +286,11 @@ void PspmtProcessor::DeclarePlots(void) {
 	 * damm ID = 1940-1949
 	 */ 
 	DeclareHistogram2D(41, 2048, 1024, "Energy (4 keV/ch) vs. P1D"); // 1941
-	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1946 
-	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1947
-	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1948
-	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1949
-	DeclareHistogram2D(50, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1950
+	DeclareHistogram2D(45, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1945 
+	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1946
+	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1947
+	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
+	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
 
 	/* Decays only 
 	 * 1960s
@@ -463,6 +463,8 @@ const double parY[4] = {3.16e-8, -4.75e-5, 5.30e-2, -7.20};
 //
 const double parXIon[4] = {1.27e-8, -4.25e-5, 6.94e-2, -3.08e1}; 
 const double parYIon[4] = {1.82e-8, -6.15e-5, 9.2e-2, -4.03e1}; 
+//
+//static int ionCounter[600] = {}; 
 
 static unsigned int traceNum = 0; 
 fstream outfile; 
@@ -610,12 +612,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 	/* Deal with Ions only
 	 */ 
 	double onboardEnergyCheck = 1; 
-	bool onboard_good = false; 
+	bool canProcessIon = false; 
 	for(int i = 0; i < 4; i++) {
 		onboardEnergyCheck *= onboardEnergy[i]; 
 	}
-	if(onboardEnergy > 0) onboard_good = true; 
-	if(onboard_good && has_pspmt) {
+	if(onboardEnergy > 0 && has_pspmt) canProcessIon = true; 
+	if(canProcessIon) {
 		double eSum, eTop, eLeft, eBottom, eRight; 
 		eSum = onboardEnergy[0] + onboardEnergy[1] + onboardEnergy[2] + onboardEnergy[3];
 		eTop = onboardEnergy[0] + onboardEnergy[1]; 
@@ -643,7 +645,14 @@ bool PspmtProcessor::Process(RawEvent &event){
 		if(p1dIon >= 0 && p1dIon < 576) {
 			PixelEvent pe; 
 			pe.AssignValues(eSum, pspmttime, pxIon, pyIon, has_mwpc); 
-			implantRecorder[p1dIon] = pe; 
+			// call ionCounter
+			//			ionCounter[p1dIon]++; 
+			//			if(ionCounter[p1dIon] % 10 == 0) {
+			if(true) {
+				implantRecorder[p1dIon] = pe; 
+				decayRecorder[0][p1dIon].Clear(); // clear recorded decays
+				decayRecorder[1][p1dIon].Clear(); 
+			}
 		}
 	}
 
@@ -655,7 +664,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	if(all_trace_length > 0) {
 		canProcessDecays = true;
 	} 
-	if(canProcessDecays) { /* All pspmt channels fired 
+	if(canProcessDecays && !has_veto) { /* All pspmt channels fired 
 							* and all have valid traces
 							*/ 
 		vector<PixelEvent> vecPixel; 
@@ -723,6 +732,26 @@ bool PspmtProcessor::Process(RawEvent &event){
 			plot(63, qdcSum, p1d); // 1963
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 			
+			decayRecorder[0][p1d] = pe; 
+			// ion-decay correlations
+			if(implantRecorder[p1d].Is_Filled()) {
+				double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
+				plot(45, qdcSum, Dt*1.e6); // 1945
+				plot(46, qdcSum, Dt*1.e5); // 1946
+				plot(47, qdcSum, Dt*1.e4); // 1947
+				plot(48, qdcSum, Dt*1.e3); // 1948
+				plot(49, qdcSum, Dt*1.e2); // 1949				
+				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
+					outfile.open((runName + ".scanout").c_str(), 
+								 std::iostream::out | std::iostream::app); 
+					outfile << px << "  " 
+							<< py << "  " 
+							<< p1d << "  " 
+							<< qdcSum << "  " 
+							<< Dt << endl;
+					outfile.close(); 
+				}// end:a centain group
+			}
 		}
 
 		if(has_pileup) {
@@ -774,7 +803,27 @@ bool PspmtProcessor::Process(RawEvent &event){
 						if(p1d2 == (vecPixel.at(0).GetX() + vecPixel.at(0).GetY()*24)) {
 							samePixel = true; 
 						}
-
+						if(!samePixel) {
+							decayRecorder[0][p1d] = pe; 
+							if(implantRecorder[p1d].Is_Filled()) {
+								double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
+								plot(45, qdcSum2, Dt*1.e6); // 1945
+								plot(46, qdcSum2, Dt*1.e5); // 1946
+								plot(47, qdcSum2, Dt*1.e4); // 1947
+								plot(48, qdcSum2, Dt*1.e3); // 1948
+								plot(49, qdcSum2, Dt*1.e2); // 1949				
+								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
+									outfile.open((runName + ".scanout").c_str(), 
+												 std::iostream::out | std::iostream::app); 
+									outfile << px2 << "  " 
+											<< py2 << "  " 
+											<< p1d2 << "  " 
+											<< qdcSum2 << "  " 
+											<< Dt << endl;
+									outfile.close(); 
+								}// end:a certain group
+							}
+						}// end:!samePixel
 					}
 
 					if(samePixel) {
@@ -818,17 +867,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
 							}
 						}// end:E1>3500 keV
-						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
 						/*
-						cout << "\n >> This is pile-up trace No. " << traceNum
-							 << "\n E1 = " << qdcSum*4.
-							 << " keV, @ (" << px << "," << py << ")"
-							 << ", E2 = " << qdcSum2*4.
-							 << " keV, @ (" << px2 << "," << py2 << ")"
-							 << "\n <<" 
-							 << endl ;
-						traceNum++; 
-						*/
+						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
 						outfile << traceNum++ << "  " 
 								<< qdcSum*4 << "  " 
 								<< qdcSum2*4 << "  " 
@@ -838,6 +878,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
 								<< endl;
 						outfile.close(); 
+						*/
 						plot(64, qdcSum, qdcSum2); // 1964
 					} // end:(samePixel)					
 
@@ -846,7 +887,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 			}
 		} // end:has_pileup
 
-		
 		vecPixel.clear(); 
 				
 		
