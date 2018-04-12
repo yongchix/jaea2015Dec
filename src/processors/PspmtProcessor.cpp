@@ -463,7 +463,9 @@ const double parY[4] = {3.16e-8, -4.75e-5, 5.30e-2, -7.20};
 //
 const double parXIon[4] = {1.27e-8, -4.25e-5, 6.94e-2, -3.08e1}; 
 const double parYIon[4] = {1.82e-8, -6.15e-5, 9.2e-2, -4.03e1}; 
-//
+// linear energy calibration
+const double parE[2] = {0.858, 141.675}; 
+
 //static int ionCounter[600] = {}; 
 
 static unsigned int traceNum = 0; 
@@ -729,6 +731,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 			PixelEvent pe;
 			qdcSum /= 40.; 
 			qdcSum *= pixelCalib[p1d]; 
+			// internal linear calibration
+			qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch
 			plot(63, qdcSum, p1d); // 1963
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 			
@@ -795,6 +799,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 					if(p1d2 > 0 && p1d2 <=576) { // position is reasonable
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
+						// linear calibration
+						qdcSum2 = parE[0]*qdcSum2 + parE[0]; // 4 keV/ch
 						plot(63, qdcSum2, p1d); // 1963
 						pspmttime2 += pspmttime;
 						PixelEvent pe; 
