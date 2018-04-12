@@ -286,6 +286,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	 * damm ID = 1940-1949
 	 */ 
 	DeclareHistogram2D(41, 2048, 1024, "Energy (4 keV/ch) vs. P1D"); // 1941
+	DeclareHistogram2D(42, 2048, 1024, "Ions in Correlation (4 keV/ch) vs. (1 ms/ch)"); // 1942
 	DeclareHistogram2D(45, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1945 
 	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1946
 	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1947
@@ -647,14 +648,9 @@ bool PspmtProcessor::Process(RawEvent &event){
 		if(p1dIon >= 0 && p1dIon < 576) {
 			PixelEvent pe; 
 			pe.AssignValues(eSum, pspmttime, pxIon, pyIon, has_mwpc); 
-			// call ionCounter
-			//			ionCounter[p1dIon]++; 
-			//			if(ionCounter[p1dIon] % 10 == 0) {
-			if(true) {
-				implantRecorder[p1dIon] = pe; 
-				decayRecorder[0][p1dIon].Clear(); // clear recorded decays
-				decayRecorder[1][p1dIon].Clear(); 
-			}
+			implantRecorder[p1dIon] = pe; 
+			decayRecorder[0][p1dIon].Clear(); // clear recorded decays
+			decayRecorder[1][p1dIon].Clear(); 
 		}
 	}
 
@@ -745,16 +741,24 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(47, qdcSum, Dt*1.e4); // 1947
 				plot(48, qdcSum, Dt*1.e3); // 1948
 				plot(49, qdcSum, Dt*1.e2); // 1949				
+				// energy distribution of ions
+				/*
+				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
+					plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1942
+				*/
+				/*
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 					outfile.open((runName + ".scanout").c_str(), 
 								 std::iostream::out | std::iostream::app); 
 					outfile << px << "  " 
 							<< py << "  " 
-							<< p1d << "  " 
+							<< p1d << "  "
+							<< implantRecorder[p1d].GetEnergy()*4 << "  "  
 							<< qdcSum << "  " 
 							<< Dt << endl;
 					outfile.close(); 
 				}// end:a centain group
+				*/
 			}
 		}
 
@@ -800,7 +804,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
 						// linear calibration
-						qdcSum2 = parE[0]*qdcSum2 + parE[0]; // 4 keV/ch
+						qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
 						plot(63, qdcSum2, p1d); // 1963
 						pspmttime2 += pspmttime;
 						PixelEvent pe; 
@@ -817,7 +821,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(46, qdcSum2, Dt*1.e5); // 1946
 								plot(47, qdcSum2, Dt*1.e4); // 1947
 								plot(48, qdcSum2, Dt*1.e3); // 1948
-								plot(49, qdcSum2, Dt*1.e2); // 1949				
+								plot(49, qdcSum2, Dt*1.e2); // 1949	
+								/*			
 								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 									outfile.open((runName + ".scanout").c_str(), 
 												 std::iostream::out | std::iostream::app); 
@@ -828,6 +833,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 											<< Dt << endl;
 									outfile.close(); 
 								}// end:a certain group
+								*/
 							}
 						}// end:!samePixel
 					}
@@ -873,7 +879,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
 							}
 						}// end:E1>3500 keV
-						/*
+
 						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
 						outfile << traceNum++ << "  " 
 								<< qdcSum*4 << "  " 
@@ -884,7 +890,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
 								<< endl;
 						outfile.close(); 
-						*/
+
 						plot(64, qdcSum, qdcSum2); // 1964
 					} // end:(samePixel)					
 
