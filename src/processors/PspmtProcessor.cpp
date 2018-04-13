@@ -753,7 +753,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 					outfile << px << "  " 
 							<< py << "  " 
 							<< p1d << "  "
-							<< implantRecorder[p1d].GetEnergy()*4 << "  "  
 							<< qdcSum << "  " 
 							<< Dt << endl;
 					outfile.close(); 
@@ -822,7 +821,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(47, qdcSum2, Dt*1.e4); // 1947
 								plot(48, qdcSum2, Dt*1.e3); // 1948
 								plot(49, qdcSum2, Dt*1.e2); // 1949	
-
+								
 								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 									outfile.open((runName + ".scanout").c_str(), 
 												 std::iostream::out | std::iostream::app); 
@@ -833,7 +832,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 											<< Dt << endl;
 									outfile.close(); 
 								}// end:a certain group
-
+								
 							}
 						}// end:!samePixel
 					}
