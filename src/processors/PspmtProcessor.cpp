@@ -746,7 +746,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
 					plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1942
 				*/
-				/*
+				
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 					outfile.open((runName + ".scanout").c_str(), 
 								 std::iostream::out | std::iostream::app); 
@@ -758,7 +758,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 							<< Dt << endl;
 					outfile.close(); 
 				}// end:a centain group
-				*/
+				
 			}
 		}
 
@@ -822,7 +822,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(47, qdcSum2, Dt*1.e4); // 1947
 								plot(48, qdcSum2, Dt*1.e3); // 1948
 								plot(49, qdcSum2, Dt*1.e2); // 1949	
-								/*			
+
 								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 									outfile.open((runName + ".scanout").c_str(), 
 												 std::iostream::out | std::iostream::app); 
@@ -833,7 +833,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 											<< Dt << endl;
 									outfile.close(); 
 								}// end:a certain group
-								*/
+
 							}
 						}// end:!samePixel
 					}
@@ -879,7 +879,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
 							}
 						}// end:E1>3500 keV
-
+						/*
 						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
 						outfile << traceNum++ << "  " 
 								<< qdcSum*4 << "  " 
@@ -890,7 +890,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
 								<< endl;
 						outfile.close(); 
-
+						*/
 						plot(64, qdcSum, qdcSum2); // 1964
 					} // end:(samePixel)					
 
