@@ -303,18 +303,18 @@ void PspmtProcessor::DeclarePlots(void) {
 
 	/* trace analysis, from 1970 to 1979
 	 */
-	DeclareHistogram2D(70, 512, 128, "Summed Trace, pileup All"); // 1970
-	DeclareHistogram2D(71, 512, 128, "Summed Trace, pileup Top"); // 1971
-	DeclareHistogram2D(72, 512, 128, "Summed Trace, pileup Left"); // 1972
-	DeclareHistogram2D(73, 512, 128, "Summed Trace, pileup Bottom"); // 1973
-	DeclareHistogram2D(74, 512, 128, "Summed Trace, pileup Right"); // 1974	
+	DeclareHistogram2D(70, 512, 1024, "Summed Trace, pileup All"); // 1970
+	DeclareHistogram2D(71, 512, 1024, "Summed Trace, pileup Top"); // 1971
+	DeclareHistogram2D(72, 512, 1024, "Summed Trace, pileup Left"); // 1972
+	DeclareHistogram2D(73, 512, 1024, "Summed Trace, pileup Bottom"); // 1973
+	DeclareHistogram2D(74, 512, 1024, "Summed Trace, pileup Right"); // 1974	
 	//
-	DeclareHistogram2D(75, 512, 128, "Dynode Trace, pileup"); // 1975
+	DeclareHistogram2D(75, 512, 1024, "Dynode Trace, pileup"); // 1975
 	//
-	DeclareHistogram2D(76, 512, 128, "Anode Trace 0, pileup"); // 1976
-	DeclareHistogram2D(77, 512, 128, "Anode Trace 1, pileup"); // 1977
-	DeclareHistogram2D(78, 512, 128, "Anode Trace 2, pileup"); // 1978
-	DeclareHistogram2D(79, 512, 128, "Anode Trace 3, pileup"); // 1979
+	DeclareHistogram2D(76, 512, 1024, "Anode Trace 0, pileup"); // 1976
+	DeclareHistogram2D(77, 512, 1024, "Anode Trace 1, pileup"); // 1977
+	DeclareHistogram2D(78, 512, 1024, "Anode Trace 2, pileup"); // 1978
+	DeclareHistogram2D(79, 512, 1024, "Anode Trace 3, pileup"); // 1979
 
 
 	// commented out by YX
@@ -740,13 +740,56 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(46, qdcSum, Dt*1.e5); // 1946
 				plot(47, qdcSum, Dt*1.e4); // 1947
 				plot(48, qdcSum, Dt*1.e3); // 1948
-				plot(49, qdcSum, Dt*1.e2); // 1949				
+				plot(49, qdcSum, Dt*1.e2); // 1949
+				// get proton traces
+				if(abs(qdcSum - 427.1) < 57.12 
+				   && Dt*1.e6 < 200 & !has_pileup) {// four times as long as half-life
+					// plot summed trace
+					for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
+						plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
+					}
+					// summed anode traces for positioning
+					for(vector<int>::iterator it = traceTop.begin();
+						it != traceTop.end(); it++) {
+						plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
+					}
+					for(vector<int>::iterator it = traceLeft.begin();
+						it != traceLeft.end(); it++) {
+						plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
+					}
+					for(vector<int>::iterator it = traceBottom.begin();
+						it != traceBottom.end(); it++) {
+						plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
+					}
+					for(vector<int>::iterator it = traceRight.begin();
+						it != traceRight.end(); it++) {
+						plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
+					}
+					// plot dynode trace
+					for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+						plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
+					}
+					// Original Traces
+					for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+						plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+					}
+					for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+						plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+					}
+					for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+						plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+					}
+					for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+						plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+					}
+					traceNum++; 
+				}				
 				// energy distribution of ions
 				/*
 				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
 					plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1942
 				*/
-				
+				/*				
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 					outfile.open((runName + ".scanout").c_str(), 
 								 std::iostream::out | std::iostream::app); 
@@ -757,7 +800,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 							<< Dt << endl;
 					outfile.close(); 
 				}// end:a centain group
-				
+				*/
 			}
 		}
 
@@ -821,7 +864,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(47, qdcSum2, Dt*1.e4); // 1947
 								plot(48, qdcSum2, Dt*1.e3); // 1948
 								plot(49, qdcSum2, Dt*1.e2); // 1949	
-								
+								/*
 								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 									outfile.open((runName + ".scanout").c_str(), 
 												 std::iostream::out | std::iostream::app); 
@@ -832,52 +875,13 @@ bool PspmtProcessor::Process(RawEvent &event){
 											<< Dt << endl;
 									outfile.close(); 
 								}// end:a certain group
-								
+								*/
 							}
 						}// end:!samePixel
 					}
 
 					if(samePixel) {
-						if(qdcSum*4 > 3500) {
-							// plot summed trace
-							for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
-								plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
-							}
-							// summed anode traces for positioning
-							for(vector<int>::iterator it = traceTop.begin();
-								it != traceTop.end(); it++) {
-								plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
-							}
-							for(vector<int>::iterator it = traceLeft.begin();
-								it != traceLeft.end(); it++) {
-								plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
-							}
-							for(vector<int>::iterator it = traceBottom.begin();
-								it != traceBottom.end(); it++) {
-								plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
-							}
-							for(vector<int>::iterator it = traceRight.begin();
-								it != traceRight.end(); it++) {
-								plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
-							}
-							// plot dynode trace
-							for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
-								plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
-							}
-							// Original Traces
-							for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
-								plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
-							}
-							for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
-								plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
-							}
-							for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
-								plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
-							}
-							for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
-								plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
-							}
-						}// end:E1>3500 keV
+						//						if(qdcSum*4 > 3500) {						}// end:E1>3500 keV
 						/*
 						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
 						outfile << traceNum++ << "  " 
