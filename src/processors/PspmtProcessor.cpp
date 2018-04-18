@@ -733,6 +733,49 @@ bool PspmtProcessor::Process(RawEvent &event){
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 			
 			decayRecorder[0][p1d] = pe; 
+			// get alpha traces
+			if(!has_pileup) {
+				// plot summed trace
+				for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
+					plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
+				}
+				// summed anode traces for positioning
+				for(vector<int>::iterator it = traceTop.begin();
+					it != traceTop.end(); it++) {
+					plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
+				}
+				for(vector<int>::iterator it = traceLeft.begin();
+					it != traceLeft.end(); it++) {
+					plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
+				}
+				for(vector<int>::iterator it = traceBottom.begin();
+					it != traceBottom.end(); it++) {
+					plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
+				}
+				for(vector<int>::iterator it = traceRight.begin();
+					it != traceRight.end(); it++) {
+					plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
+				}
+				// plot dynode trace
+				for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+					plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
+				}
+				// Original Traces
+				for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+					plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+				}
+				for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+					plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+				}
+				for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+					plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+				}
+				for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+					plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+				}
+				traceNum++; 
+			}				
+
 			// ion-decay correlations
 			if(implantRecorder[p1d].Is_Filled()) {
 				double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
@@ -741,49 +784,6 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(47, qdcSum, Dt*1.e4); // 1947
 				plot(48, qdcSum, Dt*1.e3); // 1948
 				plot(49, qdcSum, Dt*1.e2); // 1949
-				// get proton traces
-				if(abs(qdcSum - 427.1) < 57.12 
-				   && Dt*1.e6 < 200 & !has_pileup) {// four times as long as half-life
-					// plot summed trace
-					for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
-						plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
-					}
-					// summed anode traces for positioning
-					for(vector<int>::iterator it = traceTop.begin();
-						it != traceTop.end(); it++) {
-						plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
-					}
-					for(vector<int>::iterator it = traceLeft.begin();
-						it != traceLeft.end(); it++) {
-						plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
-					}
-					for(vector<int>::iterator it = traceBottom.begin();
-						it != traceBottom.end(); it++) {
-						plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
-					}
-					for(vector<int>::iterator it = traceRight.begin();
-						it != traceRight.end(); it++) {
-						plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
-					}
-					// plot dynode trace
-					for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
-						plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
-					}
-					// Original Traces
-					for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
-						plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
-					}
-					for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
-						plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
-					}
-					for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
-						plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
-					}
-					for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
-						plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
-					}
-					traceNum++; 
-				}				
 				// energy distribution of ions
 				/*
 				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
