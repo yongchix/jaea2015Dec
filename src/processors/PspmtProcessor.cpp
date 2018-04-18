@@ -734,7 +734,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 			vecPixel.push_back(pe); 			
 			decayRecorder[0][p1d] = pe; 
 			// get alpha traces
-			if(!has_pileup) {
+			if(!has_pileup && qdcSum*4 > 4000.) {
 				// plot summed trace
 				for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
 					plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
