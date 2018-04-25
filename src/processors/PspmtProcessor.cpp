@@ -300,7 +300,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(62, 32, 32, "Pixlated Map of Decays"); // 1962
 	DeclareHistogram2D(63, 4096, 1024, "Summed QDC vs. P1D"); // 1963
 	DeclareHistogram2D(64, 2048, 2048, "Pile-Up traces, E1 vs. E2, same pixel"); // 1964
-	//	DeclareHistogram2D(65, 4096, 1024, "On-board Energy vs. P1D(on-board)"); // 1965
+	DeclareHistogram2D(65, 4096, 1024, "On-board Energy vs. P1D(on-board)"); // 1965
 	/* trace analysis, from 1970 to 1979
 	 */
 	DeclareHistogram2D(70, 512, 1024, "Summed Trace, pileup All"); // 1970
@@ -594,20 +594,16 @@ bool PspmtProcessor::Process(RawEvent &event){
 			Trace tr = chan->GetTrace(); 
 			pspmttime = chan->GetTime(); 
 			if(ch < 4) {
-				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
-				else if(tr.size() > 0) traceAnode[ch] = tr; 
-				/*
+				//				if(has_mwpc) 
 				onboardEnergy[ch] = chan->GetCalEnergy(); 
-				if(tr.size() > 0) traceAnode[ch] = tr; 
-				*/
+				//				else 
+					if(tr.size() > 0) traceAnode[ch] = tr; 
 			}
 			if(ch == 4) {
-				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
-				else if(tr.size() > 0) traceDynode = tr; 
-				/*
-				onboardEnergy[ch] = chan->GetCalEnergy(); 
-				if(tr.size() > 0) traceDynode = tr; 
-				*/
+				//				if(has_mwpc) 
+					onboardEnergy[ch] = chan->GetCalEnergy(); 
+					//				else 
+					if(tr.size() > 0) traceDynode = tr; 
 			}
 		}
 	}
@@ -619,7 +615,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	for(int i = 0; i < 4; i++) {
 		onboardEnergyCheck *= onboardEnergy[i]; 
 	}
-	if(onboardEnergy > 0 && has_pspmt) 
+	if(onboardEnergy > 0 && !has_veto) // && has_pspmt) 
 		canProcessIon = true; 
 	if(canProcessIon) {
 		double eSum, eTop, eLeft, eBottom, eRight; 
@@ -648,8 +644,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 		int p1dIon = pxIon + 24*pyIon; 
 		if(p1dIon >= 0 && p1dIon < 576) {
 			PixelEvent pe; 
+			eSum *= pixelCalib[p1dIon]; // gain-match, 04/25
 			pe.AssignValues(eSum, pspmttime, pxIon, pyIon, has_mwpc); 
 			implantRecorder[p1dIon] = pe; 
+			// plot p1d vs. energy
+			plot(65, eSum, p1dIon); // 1965
 			decayRecorder[0][p1dIon].Clear(); // clear recorded decays
 			decayRecorder[1][p1dIon].Clear(); 
 		}
@@ -748,8 +747,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(48, qdcSum, Dt*1.e3); // 1948
 				plot(49, qdcSum, Dt*1.e2); // 1949
 				// energy distribution of ions
-				plot(
-
+				
 				/*				
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 					outfile.open((runName + ".scanout").c_str(), 
