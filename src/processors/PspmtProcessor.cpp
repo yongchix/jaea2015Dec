@@ -286,7 +286,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	 * damm ID = 1940-1949
 	 */ 
 	DeclareHistogram2D(41, 2048, 1024, "Energy (4 keV/ch) vs. P1D"); // 1941
-	DeclareHistogram2D(42, 2048, 1024, "Ions in Correlation (4 keV/ch) vs. (1 ms/ch)"); // 1942
+	DeclareHistogram2D(42, 2048, 1024, "Ions in Correlation (4 keV/ch) vs. (1 ms/ch)"); // 1942(resembles 1948)
 	DeclareHistogram2D(45, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1945 
 	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1946
 	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1947
@@ -300,7 +300,7 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(62, 32, 32, "Pixlated Map of Decays"); // 1962
 	DeclareHistogram2D(63, 4096, 1024, "Summed QDC vs. P1D"); // 1963
 	DeclareHistogram2D(64, 2048, 2048, "Pile-Up traces, E1 vs. E2, same pixel"); // 1964
-
+	//	DeclareHistogram2D(65, 4096, 1024, "On-board Energy vs. P1D(on-board)"); // 1965
 	/* trace analysis, from 1970 to 1979
 	 */
 	DeclareHistogram2D(70, 512, 1024, "Summed Trace, pileup All"); // 1970
@@ -619,7 +619,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 	for(int i = 0; i < 4; i++) {
 		onboardEnergyCheck *= onboardEnergy[i]; 
 	}
-	if(onboardEnergy > 0 && has_pspmt) canProcessIon = true; 
+	if(onboardEnergy > 0 && has_pspmt) 
+		canProcessIon = true; 
 	if(canProcessIon) {
 		double eSum, eTop, eLeft, eBottom, eRight; 
 		eSum = onboardEnergy[0] + onboardEnergy[1] + onboardEnergy[2] + onboardEnergy[3];
@@ -663,8 +664,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 		canProcessDecays = true;
 	} 
 	if(canProcessDecays && !has_veto) { /* All pspmt channels fired 
-							* and all have valid traces
-							*/ 
+										 * and all have valid traces
+										 */ 
 		vector<PixelEvent> vecPixel; 
 		Trace traceSum, traceTop, traceBottom, traceLeft, traceRight; 
 		
@@ -728,52 +729,14 @@ bool PspmtProcessor::Process(RawEvent &event){
 			qdcSum /= 40.; 
 			qdcSum *= pixelCalib[p1d]; 
 			// internal linear calibration
-			qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch
+			//			qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch
+			qdcSum *= 0.961; // second gain-match
 			plot(63, qdcSum, p1d); // 1963
 			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
 			vecPixel.push_back(pe); 			
 			decayRecorder[0][p1d] = pe; 
 			// get alpha traces
-			if(!has_pileup && qdcSum*4 > 4000.) {
-				// plot summed trace
-				for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
-					plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
-				}
-				// summed anode traces for positioning
-				for(vector<int>::iterator it = traceTop.begin();
-					it != traceTop.end(); it++) {
-					plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
-				}
-				for(vector<int>::iterator it = traceLeft.begin();
-					it != traceLeft.end(); it++) {
-					plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
-				}
-				for(vector<int>::iterator it = traceBottom.begin();
-					it != traceBottom.end(); it++) {
-					plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
-				}
-				for(vector<int>::iterator it = traceRight.begin();
-					it != traceRight.end(); it++) {
-					plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
-				}
-				// plot dynode trace
-				for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
-					plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
-				}
-				// Original Traces
-				for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
-					plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
-				}
-				for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
-					plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
-				}
-				for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
-					plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
-				}
-				for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
-					plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
-				}
-				traceNum++; 
+			if(!has_pileup && abs(qdcSum - 1318) < 100.) {
 			}				
 
 			// ion-decay correlations
@@ -785,10 +748,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 				plot(48, qdcSum, Dt*1.e3); // 1948
 				plot(49, qdcSum, Dt*1.e2); // 1949
 				// energy distribution of ions
-				/*
-				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
-					plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1942
-				*/
+				plot(
+
 				/*				
 				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
 					outfile.open((runName + ".scanout").c_str(), 
@@ -818,7 +779,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 					similarEnergy = true; // might be successive alpha-particle
 				}
 				
-				if(!has_mwpc & similarEnergy) {
+				if(!has_mwpc) { // & similarEnergy) {
 					// deduce position info. of 2nd signal
 					double qdcTop2, qdcLeft2, qdcBottom2, qdcRight2, qdcSum2; 
 					qdcTop2 = traceTop.DoQDCSimple(pspmttime2, pulse2end); 
@@ -846,7 +807,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
 						// linear calibration
-						qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
+						//						qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
+						qdcSum2 *= 0.961; // second gain-match
 						plot(63, qdcSum2, p1d); // 1963
 						pspmttime2 += pspmttime;
 						PixelEvent pe; 
@@ -865,41 +827,76 @@ bool PspmtProcessor::Process(RawEvent &event){
 								plot(48, qdcSum2, Dt*1.e3); // 1948
 								plot(49, qdcSum2, Dt*1.e2); // 1949	
 								/*
-								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
-									outfile.open((runName + ".scanout").c_str(), 
-												 std::iostream::out | std::iostream::app); 
-									outfile << px2 << "  " 
-											<< py2 << "  " 
-											<< p1d2 << "  " 
-											<< qdcSum2 << "  " 
-											<< Dt << endl;
-									outfile.close(); 
-								}// end:a certain group
+								  if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
+								  outfile.open((runName + ".scanout").c_str(), 
+								  std::iostream::out | std::iostream::app); 
+								  outfile << px2 << "  " 
+								  << py2 << "  " 
+								  << p1d2 << "  " 
+								  << qdcSum2 << "  " 
+								  << Dt << endl;
+								  outfile.close(); 
+								  }// end:a certain group
 								*/
 							}
-						}// end:!samePixel
-					}
-
-					if(samePixel) {
-						//						if(qdcSum*4 > 3500) {						}// end:E1>3500 keV
-						/*
-						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
-						outfile << traceNum++ << "  " 
-								<< qdcSum*4 << "  " 
-								<< qdcSum2*4 << "  " 
-								<< px << "  " << py << "  " 
-								<< (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds() << "  "
-								<< implantRecorder[p1d].Is_Implant() << "  "  
-								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
-								<< endl;
-						outfile.close(); 
-						*/
-						plot(64, qdcSum, qdcSum2); // 1964
-					} // end:(samePixel)					
-
+						} else {
+							// plot pile-up traces
+							for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
+								plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
+							}
+							// summed anode traces for positioning
+							for(vector<int>::iterator it = traceTop.begin();
+								it != traceTop.end(); it++) {
+								plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
+							}
+							for(vector<int>::iterator it = traceLeft.begin();
+								it != traceLeft.end(); it++) {
+								plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
+							}
+							for(vector<int>::iterator it = traceBottom.begin();
+								it != traceBottom.end(); it++) {
+								plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
+							}
+							for(vector<int>::iterator it = traceRight.begin();
+								it != traceRight.end(); it++) {
+								plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
+							}
+							// plot dynode trace
+							for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+								plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
+							}
+							// Original Traces
+							for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+								plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+							}
+							for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+								plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+							}
+							for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+								plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+							}
+							for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+								plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+							}
+							traceNum++; 
+							//						if(qdcSum*4 > 3500) {						}// end:E1>3500 keV
+							/*
+							  outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
+							  outfile << traceNum++ << "  " 
+							  << qdcSum*4 << "  " 
+							  << qdcSum2*4 << "  " 
+							  << px << "  " << py << "  " 
+							  << (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds() << "  "
+							  << implantRecorder[p1d].Is_Implant() << "  "  
+							  << traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
+							  << endl;
+							  outfile.close(); 
+							*/
+							plot(64, qdcSum, qdcSum2); // 1964
+						} // end:(samePixel)					
+					} // end:(reasonable pixel)
 				} // end:(similarEnergy && !has_mwpc)
-
-			}
+			} // end:time separation > 100
 		} // end:has_pileup
 
 		vecPixel.clear(); 
