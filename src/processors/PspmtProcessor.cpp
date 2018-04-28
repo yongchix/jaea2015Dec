@@ -301,11 +301,11 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(48, 2048, 256, "Decay E. vs. Time (1 ms/ch)"); // 1948
 	DeclareHistogram2D(49, 2048, 256, "Decay E. vs. Time (10 ms/ch)"); // 1949
 	// 1950s, for the same purpose
-	DeclareHistogram2D(50, 2048, 2048, "Decays(x) vs. Ions(y), < 256 us"); // 1950
-	DeclareHistogram2D(51, 2048, 2048, "Decays(x) vs. Ions(y), < 256 10us"); // 1951
-	DeclareHistogram2D(52, 2048, 2048, "Decays(x) vs. Ions(y), < 256 100us"); // 1952
-	DeclareHistogram2D(53, 2048, 2048, "Decays(x) vs. Ions(y), < 256 1ms"); // 1953
-	DeclareHistogram2D(54, 2048, 2048, "Decays(x) vs. Ions(y), < 256 10ms"); // 1954
+	DeclareHistogram2D(50, 2048, 4096, "Decays(x) vs. Ions(y), < 256 us"); // 1950
+	DeclareHistogram2D(51, 2048, 4096, "Decays(x) vs. Ions(y), < 256 10us"); // 1951
+	DeclareHistogram2D(52, 2048, 4096, "Decays(x) vs. Ions(y), < 256 100us"); // 1952
+	DeclareHistogram2D(53, 2048, 4096, "Decays(x) vs. Ions(y), < 256 1ms"); // 1953
+	DeclareHistogram2D(54, 2048, 4096, "Decays(x) vs. Ions(y), < 256 10ms"); // 1954
 	
 	/* Decays only 
 	 * 1960s
@@ -798,8 +798,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 	 ************************/
 	if(has_implant && !has_veto) {
 		PixelEvent pe; 
-		if(useTraces) {pe = pEventTr;}
-		//		if(useOnboardEnergy) {pe = pEventE; }
+		//		if(useTraces) {pe = pEventTr;}
+		if(useOnboardEnergy) {pe = pEventE; }
 		if(pe.Is_Filled() && pe.Is_Ion()) {
 			double orx, ory; 
 			orx = pe.GetRawX(); 
