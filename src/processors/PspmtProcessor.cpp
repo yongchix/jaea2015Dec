@@ -612,6 +612,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	for(int i = 0; i < 4; i++) {
 		all_onboard_energy *= onboardEnergy[i]; 
 	}
+
 	// verify all trace length
 	double all_trace_length = 1; 
 	for(int i = 0; i < 4; i++) {
