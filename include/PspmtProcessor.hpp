@@ -10,6 +10,7 @@
 #include "RawEvent.hpp"
 #include "EventProcessor.hpp"
 #include "Globals.hpp"
+#include "Trace.hpp"
 #include <vector>
 
 using namespace std; 
@@ -94,52 +95,65 @@ class PixelEvent {
 private: 
 	double energy;
 	double time;
+	double rx, ry; 
 	int x, y;  
-	bool is_implant; 
+	//
+	Trace sumAnodeTrace, dynodeTrace; 
+	bool is_ion; 
+	bool is_pileup; 
 public:
 	PixelEvent() {
 		energy = -1;
 		time = -1;
+		rx = -1; ry = -1; 
 		x = -1; y = -1; 
-		is_implant = false; 
+		is_ion = false; 
+		is_pileup = false; 
 	}
 	~PixelEvent() {
 		energy = -1;
 		time = -1;
+		rx = -1; ry = -1; 
 		x = -1; y = -1; 
-		is_implant = false; 
+		is_ion = false; 
+		is_pileup = false; 
+
 	}
 	void Clear() {
 		energy = -1;
 		time = -1;
+		rx = -1; ry = -1; 
 		x = -1; y = -1; 
-		is_implant = false;
+		is_ion = false; 
+		is_pileup = false; 
 	}
-	bool Is_Filled() {
-		return (time > 0); 
-	}
-	void AssignValues(double e, double t, int x_, int y_, bool b) {
+	//
+	bool Is_Filled() {return (time > 0);}
+	bool Has_Trace() {return (dynodeTrace.size() > 0); }
+	bool Is_Pileup() {return is_pileup; }
+	bool Is_Ion() {return is_ion; }
+	//
+	void AssignValues(double e, double t, double rx_, double ry_, int x_, int y_) {
 		energy = e; 
 		time = t; 
+		rx = rx_; ry = ry_; 
 		x = x_; y = y_; 
-		is_implant = b; 
 	}
-	double GetTime() {
-		return time; 
+	void AssignTraces(Trace &trAnode, Trace &trDynode) {
+		sumAnodeTrace = trAnode; 
+		dynodeTrace = trDynode; 
 	}
-	double GetEnergy() {
-		return energy; 
-	}
-
-	bool Is_Implant() {
-		return is_implant; 
-	}
-	int GetX() {
-		return x; 
-	}
-	int GetY() {
-		return y; 
-	}
+	void AssignSignalType(bool &type_) {is_ion = type_; }
+	void AssignPileup(bool &pileup_) {is_pileup = pileup_; }
+	//
+	Trace GetSummedTrace() {return sumAnodeTrace; }
+	Trace GetDynodeTrace() {return dynodeTrace; }
+	double GetTime() {return time; }
+	double GetEnergy() {return energy; }
+	double GetRawX() {return rx; }
+	double GetRawY() {return ry; }
+	int GetX() {return x;}
+	int GetY() {return y;}
 };
 
 #endif // __PSPMTPROCESSOR_HPP__
