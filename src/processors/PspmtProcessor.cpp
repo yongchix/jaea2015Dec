@@ -288,14 +288,25 @@ void PspmtProcessor::DeclarePlots(void) {
 	/* for time-energy correlation
 	 * damm ID = 1940-1949
 	 */ 
-	DeclareHistogram2D(41, 2048, 1024, "Energy (4 keV/ch) vs. P1D"); // 1941
-	DeclareHistogram2D(42, 2048, 1024, "Ions in Correlation (4 keV/ch) vs. (1 ms/ch)"); // 1942(resembles 1948)
-	DeclareHistogram2D(45, 2048, 256, "Energy (4 keV/ch) vs. Time (1 us/ch)"); // 1945 
-	DeclareHistogram2D(46, 2048, 256, "Energy (4 keV/ch) vs. Time (10 us/ch)"); // 1946
-	DeclareHistogram2D(47, 2048, 256, "Energy (4 keV/ch) vs. Time (100 us/ch)"); // 1947
-	DeclareHistogram2D(48, 2048, 256, "Energy (4 keV/ch) vs. Time (1 ms/ch)"); // 1948
-	DeclareHistogram2D(49, 2048, 256, "Energy (4 keV/ch) vs. Time (10 ms/ch)"); // 1949
-
+	// for ions
+	DeclareHistogram2D(40, 2048, 256, "Ion E. vs. Time (1 us/ch), Ions"); // 1940 
+	DeclareHistogram2D(41, 2048, 256, "Ion E. vs. Time (10 us/ch), Ions"); // 1941
+	DeclareHistogram2D(42, 2048, 256, "Ion E. vs. Time (100 us/ch), Ions"); // 1942
+	DeclareHistogram2D(43, 2048, 256, "Ion E. vs. Time (1 ms/ch), Ions"); // 1943
+	DeclareHistogram2D(44, 2048, 256, "Ion E. vs. Time (10 ms/ch, Ions)"); // 1944
+	// for decays
+	DeclareHistogram2D(45, 2048, 256, "Decay E. vs. Time (1 us/ch)"); // 1945 
+	DeclareHistogram2D(46, 2048, 256, "Decay E. vs. Time (10 us/ch)"); // 1946
+	DeclareHistogram2D(47, 2048, 256, "Decay E. vs. Time (100 us/ch)"); // 1947
+	DeclareHistogram2D(48, 2048, 256, "Decay E. vs. Time (1 ms/ch)"); // 1948
+	DeclareHistogram2D(49, 2048, 256, "Decay E. vs. Time (10 ms/ch)"); // 1949
+	// 1950s, for the same purpose
+	DeclareHistogram2D(50, 2048, 2048, "Decays(x) vs. Ions(y), < 256 us"); // 1950
+	DeclareHistogram2D(51, 2048, 2048, "Decays(x) vs. Ions(y), < 256 10us"); // 1951
+	DeclareHistogram2D(52, 2048, 2048, "Decays(x) vs. Ions(y), < 256 100us"); // 1952
+	DeclareHistogram2D(53, 2048, 2048, "Decays(x) vs. Ions(y), < 256 1ms"); // 1953
+	DeclareHistogram2D(54, 2048, 2048, "Decays(x) vs. Ions(y), < 256 10ms"); // 1954
+	
 	/* Decays only 
 	 * 1960s
 	 */ 
@@ -586,12 +597,12 @@ bool PspmtProcessor::Process(RawEvent &event){
 			Trace tr = chan->GetTrace(); 
 			pspmttime = chan->GetTime(); 
 			if(ch < 4) {
-				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
-				if(tr.size() > 0) traceAnode[ch] = tr; 
+				onboardEnergy[ch] = chan->GetCalEnergy(); 
+				traceAnode[ch] = tr; 
 			}
 			if(ch == 4) {
-				if(has_mwpc) onboardEnergy[ch] = chan->GetCalEnergy(); 
-				if(tr.size() > 0) traceDynode = tr; 
+				onboardEnergy[ch] = chan->GetCalEnergy(); 
+				traceDynode = tr; 
 			}
 		}
 	}
@@ -606,6 +617,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	for(int i = 0; i < 4; i++) {
 		all_trace_length *= traceAnode[i].size(); 
 	}
+	all_trace_length *= traceDynode.size(); 
 
 	/******************************
 	 *         FOR TRACES         *
@@ -619,7 +631,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	PixelEvent pEventTr; 
 	vector<PixelEvent> vecPileupEvents; 
 	Trace traceSum, traceTop, traceBottom, traceLeft, traceRight; 		
-	if(all_trace_length > 0) {
+	if(all_trace_length > 0 && has_pspmt) {
 		useTraces = true;
 		double sumAnode = 0; 
 		for(int i = 0; i < 4; i++) { // loop over anode traces and energy
@@ -660,7 +672,10 @@ bool PspmtProcessor::Process(RawEvent &event){
 		px = trunc(posX); 
 		py = trunc(posY);
 		int p1d = px + 24*py; // unique 1-d position
-		if(p1d >= 0 && p1d < 576 ) {
+		//
+		bool badCorner = false; 
+		if(px >= 18 && py >= 15) badCorner = true; 
+		if(p1d >= 0 && p1d < 576 && !badCorner) {
 			// energy and calibration
 			qdcSum /= 40.; 
 			qdcSum *= pixelCalib[p1d]; 
@@ -668,7 +683,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 			qdcSum *= 0.961; // second gain-match, don't remove		
 			// create an pixel event
 			pEventTr.AssignValues(qdcSum, pspmttime, rx, ry, px, py); // first event
+			pEventTr.AssignTraces(traceSum, traceDynode); 
+			pEventTr.AssignSignalType(has_mwpc); 
+			pEventTr.AssignPileup(has_pileup); 
 		} // end:reasonable position
+		//
 		if(has_pileup) {
 			bool similarEnergy = false; 
 			double pspmttime2 = traceDynode.GetValue("filterTime2"); 
@@ -705,7 +724,10 @@ bool PspmtProcessor::Process(RawEvent &event){
 					int p1d2; 					
 					p1d2 = px2 + 24*py2; 
 					bool samePixel = false; 
-					if(p1d2 > 0 && p1d2 <=576) { // position is reasonable
+					//
+					bool badCorner2 = false; 
+					if(px2 >= 18 && py2 >= 15) badCorner2 = true; 
+					if(p1d2 > 0 && p1d2 <=576 && !badCorner2) { // position is reasonable
 						if(p1d2 == p1d) samePixel = true; 
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
@@ -734,7 +756,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	 ******************************/
 	bool useOnboardEnergy = false; 
 	PixelEvent pEventE; 
-	if(all_onboard_energy > 0) { 
+	if(all_onboard_energy > 0 && has_pspmt) { 
 		useOnboardEnergy = true; 
 		// deal with on-board energy
 		double eSum, eTop, eLeft, eBottom, eRight; 
@@ -759,27 +781,32 @@ bool PspmtProcessor::Process(RawEvent &event){
 		pxIon = trunc(posXIon); 
 		pyIon = trunc(posYIon); 
 		int p1dIon = pxIon + 24*pyIon; 
-		if(p1dIon >= 0 && p1dIon < 576) {
+		//
+		bool badCornerIon = false; 
+		if(pxIon >= 18 && pyIon >= 15) badCornerIon = true; 
+		if(p1dIon >= 0 && p1dIon < 576 && !badCornerIon) {
+			// create a pixel event
 			pEventE.AssignValues(eSum, pspmttime, orx, ory, pxIon, pyIon); 
+			pEventE.AssignSignalType(has_mwpc); 
+			//			pEventE.AssignPileup(has_pileup); 
 		}
 	}
 
 	/************************
 	 *      IONS ONLY       *
 	 ************************/
-	if(has_mwpc && !has_veto) {
+	if(has_implant && !has_veto) {
 		PixelEvent pe; 
-		//		if(useTraces) {pe = pEventTr; }
-		if(useOnboardEnergy) {pe = pEventE; }
-		//
-		if(pe.Is_Filled()) {
+		if(useTraces) {pe = pEventTr;}
+		//		if(useOnboardEnergy) {pe = pEventE; }
+		if(pe.Is_Filled() && pe.Is_Ion()) {
 			double orx, ory; 
 			orx = pe.GetRawX(); 
 			ory = pe.GetRawY(); 
+			plot(3, orx, ory); // 1903
 			int pxIon, pyIon; 
 			pxIon = pe.GetX(); 
 			pyIon = pe.GetY(); 
-			plot(3, orx, ory); // 1903
 			plot(2, pxIon, pyIon); // 1902
 			double energyIon; 
 			energyIon = pe.GetEnergy(); 
@@ -789,15 +816,59 @@ bool PspmtProcessor::Process(RawEvent &event){
 			implantRecorder[p1dIon] = pe; 
 			decayRecorder[0][p1dIon].Clear(); // clear recorded decays
 			decayRecorder[1][p1dIon].Clear(); 
+			
+			bool plotTraces = false; // artificial switch
+			if(useTraces && plotTraces && !has_pileup) {
+				// plot all associated traces
+				for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
+					plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
+				}
+				// summed anode traces for positioning
+				for(vector<int>::iterator it = traceTop.begin();
+					it != traceTop.end(); it++) {
+					plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
+				}
+				for(vector<int>::iterator it = traceLeft.begin();
+					it != traceLeft.end(); it++) {
+					plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
+				}
+				for(vector<int>::iterator it = traceBottom.begin();
+					it != traceBottom.end(); it++) {
+					plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
+				}
+				for(vector<int>::iterator it = traceRight.begin();
+					it != traceRight.end(); it++) {
+					plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
+				}
+				// plot dynode trace
+				for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+					plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
+				}
+				// Original Traces
+				for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+					plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+				}
+				for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+					plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+				}
+				for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+					plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+				}
+				for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+					plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+				}
+				traceNum++; 
+			} // end:plot_traces
+
 		}
 	}
 	/*************************
 	 *     DECAYS ONLY       *
 	 *************************/
-	if(!has_mwpc && !has_veto) {
+	if(has_decay && !has_veto && !has_pileup) {
 		PixelEvent pe; 
 		if(useTraces) {pe = pEventTr; }
-		if(pe.Is_Filled()) {
+		if(pe.Is_Filled() && !pe.Is_Ion()) {
 			double rx, ry; 
 			rx = pe.GetRawX(); 
 			ry = pe.GetRawY(); 
@@ -815,17 +886,36 @@ bool PspmtProcessor::Process(RawEvent &event){
 				double timeDecay = decayRecorder[0][p1d].GetTime(); 
 				if(implantRecorder[p1d].Is_Filled()) {
 					double Dt = (timeDecay - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
+					Dt *= 2; 
 					plot(45, qdcSum, Dt*1.e6); // 1945
 					plot(46, qdcSum, Dt*1.e5); // 1946
 					plot(47, qdcSum, Dt*1.e4); // 1947
 					plot(48, qdcSum, Dt*1.e3); // 1948
 					plot(49, qdcSum, Dt*1.e2); // 1949
+					// plot correlated ions
+					if(true) {
+						//					if(implantRecorder[p1d].Has_Trace()) {
+						//					if(abs(qdcSum - 410.) < 55.16) {// 109I-protons
+						//						if(abs(qdcSum - 711) < 73.59) {// 109Te-alphas
+						plot(40, implantRecorder[p1d].GetEnergy(), Dt*1.e6); // 1940
+						plot(41, implantRecorder[p1d].GetEnergy(), Dt*1.e5); // 1941
+						plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e4); // 1942
+						plot(43, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1943
+						plot(44, implantRecorder[p1d].GetEnergy(), Dt*1.e2); // 1944
+						// ion E. vs. decay E. 
+						if(Dt < 256e-6) plot(50, qdcSum, implantRecorder[p1d].GetEnergy()); // 1950
+						if(Dt < 256e-5) plot(51, qdcSum, implantRecorder[p1d].GetEnergy()); // 1951
+						if(Dt < 256e-4) plot(52, qdcSum, implantRecorder[p1d].GetEnergy()); // 1952
+						if(Dt < 256e-3) plot(53, qdcSum, implantRecorder[p1d].GetEnergy()); // 1953
+						if(Dt < 256e-2) plot(54, qdcSum, implantRecorder[p1d].GetEnergy()); // 1954
+					}// previous ion has traces
 				}
 				bool plotTraces = false; 
 				if(has_pileup && vecPileupEvents.size() == 2) {
 					// see condition for filling vecPileupEvents above
 					plotTraces = true; 
 				}
+				plotTraces = false; // artificial switch
 				if(plotTraces) {
 					// plot all associated traces
 					for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
@@ -868,7 +958,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 					traceNum++; 
 					double qdcSum2 = vecPileupEvents.at(1).GetEnergy(); 
 					plot(64, qdcSum, qdcSum2); // 1964
-				} // end:has_pileup	
+				} // end:plot_traces
+
 			} // end:didn't fill the first gen. of decay
 		} // pe is got
 	} // end:!has_mwpc and !has_veto
