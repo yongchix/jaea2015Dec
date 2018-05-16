@@ -198,33 +198,15 @@ void PspmtProcessor::DeclarePlots(void) {
 	const int corrBins     = 2048;
   
 	// Raw 0-29
-	/*
-    DeclareHistogram1D(D_RAW1, energyBins, "Pspmt1 Raw");
-    DeclareHistogram1D(D_RAW2, energyBins, "Pspmt2 Raw");
-    DeclareHistogram1D(D_RAW3, energyBins, "Pspmt3 Raw");
-    DeclareHistogram1D(D_RAW4, energyBins, "Pspmt4 Raw");
-    DeclareHistogram1D(D_RAWD, energyBins, "Pspmt Dynode");
-	*/
-	/*
-    DeclareHistogram1D(D_SUM,  energyBins, "Pspmt Sum");
-    DeclareHistogram2D(DD_POS1_RAW, mapBins, mapBins, "Pspmt Pos1 Raw"); // 1906
-    DeclareHistogram2D(DD_POS2_RAW, mapBins, mapBins, "Pspmt Pos2 Raw"); // 1907
-    DeclareHistogram2D(DD_POS1, posBins, posBins, "Pspmt Pos1"); // 1908
-    DeclareHistogram2D(DD_POS2, posBins, posBins, "Pspmt Pos2"); // 1909
-	*/
-	/*
-	DeclareHistogram2D(6, 1024, 1024, "2-D map of all signals, reproduced - I"); // 1906
-	DeclareHistogram2D(7, 1024, 1024, "2-D map of all signals, reproduced - II"); // 1907
-	DeclareHistogram2D(8, 32, 32, "Pixelized  2-D map, reproduced - I"); // 1908
-	DeclareHistogram2D(9, 32, 32, "Pixelized 2-D map, reproduced - II"); // 1909
-	*/
 	// spectra 1900s
 	DeclareHistogram1D(1, 16, "Accumulation of ions vs. decays"); // 1901
 	DeclareHistogram2D(2, 32, 32, "Pixelated Map of Ions"); // 1902
 	DeclareHistogram2D(3, 2048, 2048, "Raw Map of Ions"); // 1903
 	DeclareHistogram2D(4, 32, 32, "Pixelated Map of Decays"); // 1904
 	DeclareHistogram2D(5, 2048, 2048, "Raw Map of Decays"); // 1905
-	
+	// MWPC
+	DeclareHistogram2D(6, 1024, 512, "MWPC - 2D"); // 1906
+	DeclareHistogram2D(7, 1024, 512, "MWPC - 2D, non-zero"); // 1907	
 
     DeclareHistogram1D(D_ENERGY_TRACE1, energyBins, "Energy1 from trace");
     DeclareHistogram1D(D_ENERGY_TRACE2, energyBins, "Energy2 from trace");
@@ -254,35 +236,11 @@ void PspmtProcessor::DeclarePlots(void) {
     DeclareHistogram2D(DD_POS1_QDC, posBins, posBins, "Pspmt pos by QDC"); // 1927
     DeclareHistogram2D(DD_DIRCAL1, mapBins, mapBins, "Map direction calibrated");
    
-    /*
-    // Energy resolutions 30-
-    DeclareHistogram2D(DD_P1D_CHANNEL, energyBins,Bins, "Ch vs Dynode EChannel"); // 1930
-    DeclareHistogram2D(DD_P1D_TRACE, energyBins,Bins, "Ch vs Dynode ETrace"); // 1931
-    DeclareHistogram2D(DD_P1D_QDC, energyBins,1024, "Ch vs Dynode QDC scaled by 10"); // 1932
-    DeclareHistogram2D(DD_P1D_QDCSUM, energyBins,1024, "P1D vs QDCSum 4 keV/ch, Decays"); // 1933
-	DeclareHistogram2D(34, energyBins, 1024, "P1D vs. QDCSum 4 keV/ch, Implants"); // 1934
-    // Energy res by correlation
-    DeclareHistogram2D(DD_P1D_IMPLANT_CHE, energyBins,p1dBins, "[Implant] ch vs E(ch)"); // 1935
-    DeclareHistogram2D(DD_P1D_DECAY_CHE, energyBins,p1dBins,   "[Decay] ch vs E(ch)"); // 1936
-    DeclareHistogram2D(DD_P1D_IMPLANT_QDC, energyBins,p1dBins, "[Implant] ch vs E(QDC)"); // 1937
-    DeclareHistogram2D(DD_P1D_DECAY_QDC, energyBins,p1dBins, "[Decay] ch vs E(QDC)"); // 1938
-	*/
-	
 	/* Spectrum 1930-1939
 	 * For PSD and other properties of signals
 	 */ 
 	DeclareHistogram1D(31, 128, "PSD, Ions"); // 1931
 	DeclareHistogram1D(32, 128, "PSD, Decays"); // 1932
-	
-
-	// by Yongchi
-	    
-    /*
-    DeclareHistogram2D(DD_MAP_IMPLANT, mapBins, mapBins, "2D MAP Implant direction calib."); // 1939
-    DeclareHistogram2D(DD_MAP_DECAY, mapBins, mapBins, "2D MAP Decay direction calib."); // 1940
-    DeclareHistogram2D(DD_MAP_IMPLANT_CHE, mapBins, mapBins, "ChE MAP Implant direction calib."); // 1941
-    DeclareHistogram2D(DD_MAP_DECAY_CHE, mapBins, mapBins, "ChE MAP Decay direction calib."); // 1942
-	*/
 
 	// by Yongchi Xiao, 01/18/2018
 	/* for time-energy correlation
@@ -329,85 +287,11 @@ void PspmtProcessor::DeclarePlots(void) {
 	DeclareHistogram2D(79, 512, 1024, "Anode Trace 3, pileup"); // 1979
 
 
-	// commented out by YX
-	/* 1950-1957
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 0, corrBins, corrBins,
-					   "2nd Ty,Ex (10ns/ch)(xkeV)"); // 1950
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 1, corrBins, corrBins, 
-					   "2nd Ty,Ex (100ns/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 2, corrBins, corrBins,
-					   "2nd Ty,Ex (1us/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 3, corrBins, corrBins,
-					   "2nd Ty,Ex (10us/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 4, corrBins, corrBins, 
-					   "2nd Ty,Ex (100us/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 5, corrBins, corrBins,
-					   "2nd Ty,Ex (1ms/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 6, corrBins, corrBins,
-					   "2nd Ty,Ex (10ms/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX + 7, corrBins, corrBins,
-					   "2nd Ty,Ex (100ms/ch)(xkeV)"); // 1957
- 
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 4, corrBins, corrBins,		       "TraceMax Ty,Ex (100us/ch)(xkeV)");
-    DeclareHistogram2D(DD_ENERGY_DECAY_TIME_GRANX_TRACEE + 5, corrBins, corrBins, 		       "TraceMax Ty,Ex (1ms/ch)(xkeV)");
-    */
-
-  
-    // Time gated Decay P1D, 1970-1975
-	/*
-    DeclareHistogram2D(DD_P1D_DECAY_TIME0, energyBins,p1dBins, "Decay time gated < 1  ms ");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME1, energyBins,p1dBins, "Decay time gated < 10 ms");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME2, energyBins,p1dBins, "Decay time gated < 100 ms");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME3, energyBins,p1dBins, "Decay time gated < 1 s");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME4, energyBins,p1dBins, "Decay time gated < 10 s");
-    DeclareHistogram2D(DD_P1D_DECAY_TIME5, energyBins,p1dBins, "Decay time gated 5");
-	*/
-
-
-    // Trace Max calibration 
-	/*
-    DeclareHistogram2D(DD_TRACEMAX_P1D, energyBins, p1dBins,"Decay TraceMax vs P1D"); // 1943
-    DeclareHistogram2D(DD_TRACEMAXCAL_P1D, energyBins, p1dBins,"Decay TraceMaxCal vs P1D"); // 1944
-    DeclareHistogram2D(DD_TRMAX_QDC, energyBins, energyBins,"Decay TraceMaxCal vs QDCcal"); // 1945
-	*/
-    // Trace
-	/*   
-    DeclareHistogram2D(DD_SINGLE_TRACE, traceBins, traceBins2,"Single traces");
-    DeclareHistogram2D(DD_DOUBLE_TRACE, 512, traceBins2,"Pileup traces"); // 1978
-    DeclareHistogram2D(DD_TRACE_POS, traceBins, traceBins2,"Position traces");
-    DeclareHistogram2D(DD_TRACE_DYNODE, traceBins, traceBins2,"Dynode traces");
-
-    DeclareHistogram2D(DD_TRACE_IMPLANT_ALL, traceBins, traceBins2,"Trace Implant All");
-    DeclareHistogram2D(DD_TRACE_IMPLANT_DYNODE, traceBins, traceBins2,"Trace Implant dynode");
-    DeclareHistogram2D(DD_TRACE_IMPLANT_POSITION, traceBins, traceBins2,"Trace Implant position");
-    DeclareHistogram2D(DD_TRACE_IMPLANT_PILEUP, traceBins, traceBins2,"Trace Implant pileup");
-
-    DeclareHistogram2D(DD_TRACE_DECAY_ALL, traceBins, traceBins2,"Trace Decay All");
-    DeclareHistogram2D(DD_TRACE_DECAY_DYNODE, traceBins, traceBins2,"Trace Decay dynode");
-    DeclareHistogram2D(DD_TRACE_DECAY_POSITION, traceBins, traceBins2,"Trace Decay position");
-    DeclareHistogram2D(DD_TRACE_DECAY_PILEUP, traceBins, traceBins2,"Trace Decay pileup");
-	*/
-    
     DeclareHistogram2D(DD_MWPC,Bins,Bins,"MWPC in PSPMT Processor");
     DeclareHistogram2D(DD_MWPC_PSPMT,Bins,Bins,"MWPC_PSPMT in PSPMT Processor");
     DeclareHistogram2D(DD_MWPC_NOPSPMT,Bins,Bins,"MWPC_PSPMT in NoPSPMT Processor");
 	//    DeclareHistogram2D(DD_TRACE_E_QDC, energyBins, energyBins,"TraceE vs QDC");
 
-	/* 1996-2007
-    DeclareHistogram2D(DD_CHE_REG, regBins, regBins,"ChE vs Regression");
-    DeclareHistogram2D(DD_QDC_REG, regBins, regBins,"QDC vs Regression");
-    
-    DeclareHistogram2D(DD_QDC_REG_IMPLANT, regBins, regBins,"QDC vs Regression Implant");   
-    DeclareHistogram2D(DD_QDC_REG_DECAY, regBins, regBins,"QDC vs Regression Decay");   
-    DeclareHistogram2D(DD_QDC_REG2_IMPLANT, regBins, regBins,"QDC vs Regression2 Implant");   
-    DeclareHistogram2D(DD_QDC_REG2_DECAY, regBins, regBins,"QDC vs Regression Decay2");   
-    DeclareHistogram2D(DD_REG12, regBins, regBins,"tau1 vs tau2");   
-    DeclareHistogram2D(DD_REG12_IMPLANT, regBins, regBins,"Implant tau1 vs tau2");   
-    DeclareHistogram2D(DD_REG12_DECAY, regBins, regBins,"Decay tau1 vs tau2");   
-    DeclareHistogram2D(DD_QDC_REG1, regBins, regBins,"QDC vs REG1");   
-    DeclareHistogram2D(DD_QDC_REG2, regBins, regBins,"QDC vs REG2");   
-	*/
-    
     DeclareHistogram2D(DD_TRACE_HIGHENE , traceBins, traceBins2,"Trace Decay High energy"); 
     DeclareHistogram2D(DD_TRACE_HIGHENE2, traceBins, traceBins2,"Trace Decay Alpha"); // 2009
     DeclareHistogram2D(DD_TRACE_HIGHENE3, traceBins, traceBins2,"Trace Decay Beta"); // 2010
@@ -474,6 +358,8 @@ const double parXIon[4] = {1.27e-8, -4.25e-5, 6.94e-2, -3.08e1};
 const double parYIon[4] = {1.82e-8, -6.15e-5, 9.2e-2, -4.03e1}; 
 // linear energy calibration
 const double parE[2] = {0.858, 141.675}; 
+// switch for gain-match
+bool useGainMatch = true; 
 
 static unsigned int traceNum = 0; 
 fstream outfile; 
@@ -489,9 +375,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 	vector<ChanEvent*> naiEvents = 
 		event.GetSummary("nai:nai", true)->GetList();
 	vector<ChanEvent*> mwpcEvents = 
-		event.GetSummary("mcp:1time", true)->GetList();
-	vector<ChanEvent*> mwpcEEvents = 
-		event.GetSummary("mcp:1position1", true)->GetList();
+		event.GetSummary("mcp", true)->GetList();
   
 	bool has_pspmt   = false;
 	bool has_mwpc    = false;
@@ -528,10 +412,25 @@ bool PspmtProcessor::Process(RawEvent &event){
 		has_veto    = true;  
 	}
   
-	static int summedTraceNum = 0; 
-	static int anodeTraceNum[4] = {0, 0, 0, 0}; 
-	static int dynodeTraceNum = 0; 
-	static int originalTraceNum = 0; 
+	double mwpctime = 0, mwpcEnergy = 0; 
+	double cathode = 0, tac = 0; 
+	for(vector<ChanEvent*>::iterator it = mwpcEvents.begin(); 
+		it != mwpcEvents.end(); 
+		it++) {
+		mwpctime = (*it)->GetTime(); 
+		mwpcEnergy = (*it)->GetCalEnergy(); 
+		string subtype = (*it)->GetChanID().GetSubtype(); 
+		
+		if(subtype == "1time") {
+			tac = mwpcEnergy; 
+		} else if(subtype == "1position1") {
+			cathode = mwpcEnergy; 
+		}
+	}
+	plot(6, tac/4., cathode); // 1906
+	if(tac && cathode) {
+		plot(7, tac/4., cathode); // 1907
+	}
 
 	// by Yongchi Xiao, 01/18/2018
 	double qdcCalib = -1; 
@@ -542,40 +441,16 @@ bool PspmtProcessor::Process(RawEvent &event){
 	double psd = 0; 
 
 	double static pspmttime;
-	double static mwpctime;
-	double mwpcene;
-	int pspmtch=-1;
-	int numpulse=0;
-	int mwpcch;
-	double regression=0;
-	double regression2=0;
-	int mwpcCh;
-	double  mwpcE;
-	Trace traceD;
-	Trace trace1,trace2,trace3,trace4;
-	double max_dynode;
-  
-	// in processor //  
+	// below for MWPC
+	double mwpc1time, mwpc1timeEnergy, mwpc1timeCh;  
 	for (vector<ChanEvent*>::iterator itm = mwpcEvents.begin();
-		 itm != mwpcEvents.end();
+		 itm != mwpcEvents.end(); // subtype = 1time
 		 ++itm) {
-		mwpctime = (*itm)->GetTime();
-		mwpcene  = (*itm)->GetCalEnergy();
-		mwpcch   = (*itm)->GetChanID().GetLocation();
+		mwpc1time = (*itm)->GetTime();
+		mwpc1timeEnergy  = (*itm)->GetCalEnergy();
+		mwpc1timeCh   = (*itm)->GetChanID().GetLocation();
 	}
-	for (vector<ChanEvent*>::iterator itm = mwpcEEvents.begin();
-		 itm != mwpcEEvents.end();
-		 ++itm) {
-		mwpcE    = (*itm)->GetCalEnergy();
-		mwpcCh   = (*itm)->GetChanID().GetLocation();
-	}
- 
-	plot(DD_MWPC,mwpcene/10,mwpcE);
-	if(has_pspmt){
-		plot(DD_MWPC_PSPMT,mwpcene/10,mwpcE);
-	}else if(!has_pspmt){
-		plot(DD_MWPC_NOPSPMT,mwpcene/10,mwpcE);
-	}
+
 
 	/* by Yongchi Xiao
 	 * If mulplicity of PSPMT is equal to 5, which
@@ -674,14 +549,19 @@ bool PspmtProcessor::Process(RawEvent &event){
 		py = trunc(posY);
 		int p1d = px + 24*py; // unique 1-d position
 		//
+		rx *= 1.25; 
+		ry *= 1.25; 
+		rx += 500; 
+		ry += 500; 
+		//
 		bool badCorner = false; 
 		if(px >= 18 && py >= 15) badCorner = true; 
 		if(p1d >= 0 && p1d < 576 && !badCorner) {
 			// energy and calibration
 			qdcSum /= 40.; 
 			qdcSum *= pixelCalib[p1d]; 
-			//			qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch, don't remove
-			qdcSum *= 0.961; // second gain-match, don't remove		
+			if(!useGainMatch) qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch, don't remove
+			else qdcSum *= 0.961; // second gain-match, don't remove		
 			// create an pixel event
 			pEventTr.AssignValues(qdcSum, pspmttime, rx, ry, px, py); // first event
 			pEventTr.AssignTraces(traceSum, traceDynode); 
@@ -724,6 +604,11 @@ bool PspmtProcessor::Process(RawEvent &event){
 					py2 = trunc(posY2);
 					int p1d2; 					
 					p1d2 = px2 + 24*py2; 
+					//
+					rx2 *= 1.25; 
+					ry2 *= 1.25; 
+					rx2 += 500; 
+					ry2 += 500; 
 					bool samePixel = false; 
 					//
 					bool badCorner2 = false; 
@@ -732,8 +617,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 						if(p1d2 == p1d) samePixel = true; 
 						qdcSum2 /= 40.;
 						qdcSum2 *= pixelCalib[p1d]; 
-						//						qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
-						qdcSum2 *= 0.961; // second gain-match
+						if(!useGainMatch) qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
+						else qdcSum2 *= 0.961; // second gain-match
 						pspmttime2 += pspmttime;
 						PixelEvent pEventTr2;
 						pEventTr2.AssignValues(qdcSum2, pspmttime2, rx2, ry2, px2, py2); 
@@ -744,7 +629,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 					} // end:position is reasonable
 				} // end:similarEnergy/true				
 			} // end:enough interval between pulses
-		} // end:has_pileup
+		}  // end:has_pileup
 	}
 
 	/******************************
@@ -798,8 +683,8 @@ bool PspmtProcessor::Process(RawEvent &event){
 	 ************************/
 	if(has_implant && !has_veto) {
 		PixelEvent pe; 
-		//		if(useTraces) {pe = pEventTr;}
-		if(useOnboardEnergy) {pe = pEventE; }
+		if(useTraces) {pe = pEventTr;}
+		//		if(useOnboardEnergy) {pe = pEventE; }
 		if(pe.Is_Filled() && pe.Is_Ion()) {
 			double orx, ory; 
 			orx = pe.GetRawX(); 
@@ -909,7 +794,7 @@ bool PspmtProcessor::Process(RawEvent &event){
 						if(Dt < 256e-4) plot(52, qdcSum, implantRecorder[p1d].GetEnergy()); // 1952
 						if(Dt < 256e-3) plot(53, qdcSum, implantRecorder[p1d].GetEnergy()); // 1953
 						if(Dt < 256e-2) plot(54, qdcSum, implantRecorder[p1d].GetEnergy()); // 1954
-					}// previous ion has traces
+					}
 				}
 				bool plotTraces = false; 
 				if(has_pileup && vecPileupEvents.size() == 2) {
