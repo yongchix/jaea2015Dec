@@ -573,6 +573,10 @@ bool PspmtProcessor::Process(RawEvent &event){
 		plot(DD_MWPC_NOPSPMT,mwpcene/10,mwpcE);
 	}
 
+	
+
+
+
 	/* by Yongchi Xiao
 	 * If mulplicity of PSPMT is equal to 5, which
 	 * means all anodes and dynodes fire,
@@ -612,302 +616,48 @@ bool PspmtProcessor::Process(RawEvent &event){
 		}
 	}
 
-	/* Deal with Ions only
-	 */ 
-	double onboardEnergyCheck = 1; 
-	bool canProcessIon = false; 
-	for(int i = 0; i < 4; i++) {
-		onboardEnergyCheck *= onboardEnergy[i]; 
+	/* plot dynode traces
+	 */
+	if(traceDynode.GetValue("numPulses") > 1) has_pileup = true;  
+	bool canPlot = false;
+	if( (traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")) < 25.) {
+		canPlot = true; 
 	}
-	if(onboardEnergy > 0 && has_pspmt) canProcessIon = true; 
-	if(canProcessIon) {
-		double eSum, eTop, eLeft, eBottom, eRight; 
-		eSum = onboardEnergy[0] + onboardEnergy[1] + onboardEnergy[2] + onboardEnergy[3];
-		eTop = onboardEnergy[0] + onboardEnergy[1]; 
-		eLeft = onboardEnergy[1] + onboardEnergy[2]; 
-		eBottom = onboardEnergy[2] + onboardEnergy[3]; 
-		eRight = onboardEnergy[3] + onboardEnergy[0]; 
-		
-		double orx = eTop/eSum; 
-		double ory = eRight/eSum; 
-		orx *= 1250; 
-		ory *= 1250; 
-		orx += 500; 
-		ory += 500; 
-		plot(3, orx, ory); // 1903, raw position
-		double posXIon, posYIon; 
-		posXIon = parXIon[0]*pow(orx, 3) + parXIon[1]*pow(orx, 2) 
-			+ parXIon[2]*pow(orx, 1) + parXIon[3] + 0.5; 
-		posYIon = parYIon[0]*pow(ory, 3) + parYIon[1]*pow(ory, 2) 
-			+ parYIon[2]*pow(ory, 1) + parYIon[3] + 0.5; 
-		int pxIon, pyIon; 
-		pxIon = trunc(posXIon); 
-		pyIon = trunc(posYIon); 
-		plot(2, pxIon, pyIon); // 1902, pixlated map
-		int p1dIon = pxIon + 24*pyIon; 
-		if(p1dIon >= 0 && p1dIon < 576) {
-			PixelEvent pe; 
-			pe.AssignValues(eSum, pspmttime, pxIon, pyIon, has_mwpc); 
-			implantRecorder[p1dIon] = pe; 
-			decayRecorder[0][p1dIon].Clear(); // clear recorded decays
-			decayRecorder[1][p1dIon].Clear(); 
+	// plot
+	if(has_pileup && canPlot && !has_mwpc) {
+		// dynode
+		for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
+			plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
 		}
+		// anode
+		for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
+			plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
+		}
+		for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
+			plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
+		}
+		for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
+			plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
+		}
+		for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
+			plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
+		}
+		traceNum++; 
+		/*
+		cout << "Trace #" << traceNum++ 
+			 << " " << traceDynode.GetValue("filterTime") 
+			 << " " << traceDynode.GetValue("filterTime2")
+			 << endl;
+		*/
 	}
+
+
+	/* Deal with Ions only
+	*/
+
 
 	/* Deal with decays only
 	 */ 
-	for(int i = 0; i < 4; i++) {
-		all_trace_length *= traceAnode[i].size(); 
-	}
-	if(all_trace_length > 0) {
-		canProcessDecays = true;
-	} 
-	if(canProcessDecays && !has_veto) { /* All pspmt channels fired 
-							* and all have valid traces
-							*/ 
-		vector<PixelEvent> vecPixel; 
-		Trace traceSum, traceTop, traceBottom, traceLeft, traceRight; 
-		
-		double sumAnode = 0; 
-		for(int i = 0; i < 4; i++) { // loop over anode traces and energy
-			traceAnode[i].SumTrace(traceSum); 
-		}
-		if(traceSum.size() == 0) exit(EXIT_FAILURE); 
-
-		/* Prepare to deduce position information
-		 */
-		// top
-		traceAnode[0].SumTrace(traceTop); 
-		traceAnode[1].SumTrace(traceTop); 
-		// left
-		traceAnode[1].SumTrace(traceLeft); 
-		traceAnode[2].SumTrace(traceLeft); 
-		// bottom
-		traceAnode[2].SumTrace(traceBottom); 
-		traceAnode[3].SumTrace(traceBottom); 
-		// right
-		traceAnode[3].SumTrace(traceRight); 
-		traceAnode[0].SumTrace(traceRight); 
-
-		/* by Yongchi Xiao, 03/08/2018
-		 * Get double trace analyzers		  
-		vector<TraceAnalyzer *> vecMyAnalyzer = driver->GetAnalyzers(); 
-		for(vector<TraceAnalyzer*>::iterator it = vecMyAnalyzer.begin();
-			it != vecMyAnalyzer.end(); it++) {
-			(*it)->Analyze(traceSum, "Artificial", "Summed-All-Anode"); 
-		}
-		*/
-
-		if(traceDynode.GetValue("numPulses") > 1) has_pileup = true;  
-		
-		double qdcTop, qdcLeft, qdcBottom, qdcRight; 
-		// by calling DoQDCSimple(lo, binNum), the baseline is re-evaluated
-		qdcTop = traceTop.DoQDCSimple(1, 120); 
-		qdcLeft = traceLeft.DoQDCSimple(1, 120); 
-		qdcBottom = traceBottom.DoQDCSimple(1, 120); 
-		qdcRight = traceRight.DoQDCSimple(1, 120); 
-		double qdcSum = traceSum.DoQDCSimple(1, 120);
-
-		// deduce position info. 
-		double rx, ry; 		// position in ratio
-		rx = qdcTop/qdcSum; 
-		ry = qdcRight/qdcSum; 
-		rx *= 1000; 
-		ry *= 1000; 
-		plot(60, rx, ry); // 1960, raw position
-		double posX, posY; // position calibration
-		posX = parX[0]*pow(rx,3) + parX[1]*pow(rx, 2) + parX[2]*rx + parX[3] + 0.5; 
-		posY = parY[0]*pow(ry,3) + parY[1]*pow(ry, 2) + parY[2]*ry + parY[3] + 0.5; 
-		int px, py; // pixlated
-		px = trunc(posX); 
-		py = trunc(posY);
-		plot(62, px, py); // 1962
-		int p1d = px + 24*py; 		// unique 1-d position
-		if(p1d >= 0 && p1d < 576 ) {
-			PixelEvent pe;
-			qdcSum /= 40.; 
-			qdcSum *= pixelCalib[p1d]; 
-			// internal linear calibration
-			qdcSum = parE[0]*qdcSum + parE[1]; // 4 keV/ch
-			plot(63, qdcSum, p1d); // 1963
-			pe.AssignValues(qdcSum, pspmttime, px, py, has_mwpc); 
-			vecPixel.push_back(pe); 			
-			decayRecorder[0][p1d] = pe; 
-			// get alpha traces
-			if(!has_pileup) {
-				// plot summed trace
-				for(vector<int>::iterator ittr = traceSum.begin(); ittr != traceSum.end(); ittr++) {
-					plot(70, ittr-traceSum.begin(), traceNum, *ittr); // 1970
-				}
-				// summed anode traces for positioning
-				for(vector<int>::iterator it = traceTop.begin();
-					it != traceTop.end(); it++) {
-					plot(71, it-traceTop.begin(), traceNum, (*it)); // 1971, top
-				}
-				for(vector<int>::iterator it = traceLeft.begin();
-					it != traceLeft.end(); it++) {
-					plot(72, it-traceLeft.begin(), traceNum, (*it)); // 1972, left
-				}
-				for(vector<int>::iterator it = traceBottom.begin();
-					it != traceBottom.end(); it++) {
-					plot(73, it-traceBottom.begin(), traceNum, (*it)); // 1973, bottom
-				}
-				for(vector<int>::iterator it = traceRight.begin();
-					it != traceRight.end(); it++) {
-					plot(74, it-traceRight.begin(), traceNum, (*it)); // 1974, right
-				}
-				// plot dynode trace
-				for(vector<int>::iterator ittr = traceDynode.begin(); ittr != traceDynode.end(); ittr++) {
-					plot(75, ittr-traceDynode.begin(), traceNum, *ittr); // 1975
-				}
-				// Original Traces
-				for(vector<int>::iterator ittr = traceAnode[0].begin(); ittr != traceAnode[0].end(); ittr++) {
-					plot(76, ittr-traceAnode[0].begin(), traceNum, *ittr); // 1976
-				}
-				for(vector<int>::iterator ittr = traceAnode[1].begin(); ittr != traceAnode[1].end(); ittr++) {
-					plot(77, ittr-traceAnode[1].begin(), traceNum, *ittr); // 1977
-				}
-				for(vector<int>::iterator ittr = traceAnode[2].begin(); ittr != traceAnode[2].end(); ittr++) {
-					plot(78, ittr-traceAnode[2].begin(), traceNum, *ittr); // 1978
-				}
-				for(vector<int>::iterator ittr = traceAnode[3].begin(); ittr != traceAnode[3].end(); ittr++) {
-					plot(79, ittr-traceAnode[3].begin(), traceNum, *ittr); // 1979
-				}
-				traceNum++; 
-			}				
-
-			// ion-decay correlations
-			if(implantRecorder[p1d].Is_Filled()) {
-				double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
-				plot(45, qdcSum, Dt*1.e6); // 1945
-				plot(46, qdcSum, Dt*1.e5); // 1946
-				plot(47, qdcSum, Dt*1.e4); // 1947
-				plot(48, qdcSum, Dt*1.e3); // 1948
-				plot(49, qdcSum, Dt*1.e2); // 1949
-				// energy distribution of ions
-				/*
-				if(abs(px-11.5) < 2 && abs(py-11.5) < 2) 
-					plot(42, implantRecorder[p1d].GetEnergy(), Dt*1.e3); // 1942
-				*/
-				/*				
-				if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
-					outfile.open((runName + ".scanout").c_str(), 
-								 std::iostream::out | std::iostream::app); 
-					outfile << px << "  " 
-							<< py << "  " 
-							<< p1d << "  "
-							<< qdcSum << "  " 
-							<< Dt << endl;
-					outfile.close(); 
-				}// end:a centain group
-				*/
-			}
-		}
-
-		if(has_pileup) {
-			bool similarEnergy = false; 
-			double pspmttime2 = traceDynode.GetValue("filterTime2"); 
-			double pulse2end = pspmttime2 + 90; 
-
-			if( (traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")) > 100) {
-				// check if two signals come with similar energy
-				double qdcDynode = traceDynode.DoQDCSimple(traceDynode.GetValue("filterTime"), 
-														   traceDynode.GetValue("filterTime")+40); 
-				double qdc2Dynode = traceDynode.DoQDCSimple(pspmttime2, pspmttime2+40); 
-				if(abs(qdcDynode-qdc2Dynode)/((qdcDynode+qdc2Dynode)/2.)*100 < 40.) {
-					similarEnergy = true; // might be successive alpha-particle
-				}
-				
-				if(!has_mwpc & similarEnergy) {
-					// deduce position info. of 2nd signal
-					double qdcTop2, qdcLeft2, qdcBottom2, qdcRight2, qdcSum2; 
-					qdcTop2 = traceTop.DoQDCSimple(pspmttime2, pulse2end); 
-					qdcLeft2 = traceLeft.DoQDCSimple(pspmttime2, pulse2end); 
-					qdcBottom2 = traceBottom.DoQDCSimple(pspmttime2, pulse2end); 
-					qdcRight2 = traceRight.DoQDCSimple(pspmttime2, pulse2end); 
-					qdcSum2 = traceSum.DoQDCSimple(pspmttime2, pulse2end); // get total energy for 2nd signal
-					double rx2, ry2;  
-					rx2 = qdcTop2/qdcSum2; 
-					ry2 = qdcRight2/qdcSum2; 
-					rx2 *= 1000; 
-					ry2 *= 1000; 
-					plot(60, rx2, ry2); // 1960, raw position
-					double posX2, posY2; 
-					posX2 = parX[0]*pow(rx2,3) + parX[1]*pow(rx2, 2) + parX[2]*rx2 + parX[3] + 0.5; 
-					posY2 = parY[0]*pow(ry2,3) + parY[1]*pow(ry2, 2) + parY[2]*ry2 + parY[3] + 0.5; 
-					int px2, py2; 
-					px2 = trunc(posX2); 
-					py2 = trunc(posY2);
-					plot(62, px2, py2); // 1962
-					int p1d2; 					
-					p1d2 = px2 + 24*py2; 
-					bool samePixel = false; 
-					if(p1d2 > 0 && p1d2 <=576) { // position is reasonable
-						qdcSum2 /= 40.;
-						qdcSum2 *= pixelCalib[p1d]; 
-						// linear calibration
-						qdcSum2 = parE[0]*qdcSum2 + parE[1]; // 4 keV/ch
-						plot(63, qdcSum2, p1d); // 1963
-						pspmttime2 += pspmttime;
-						PixelEvent pe; 
-						pe.AssignValues(qdcSum2, pspmttime2, px2, py2, has_mwpc); 
-						vecPixel.push_back(pe);
-						if(p1d2 == (vecPixel.at(0).GetX() + vecPixel.at(0).GetY()*24)) {
-							samePixel = true; 
-						}
-						if(!samePixel) {
-							decayRecorder[0][p1d] = pe; 
-							if(implantRecorder[p1d].Is_Filled()) {
-								double Dt = (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds(); 
-								plot(45, qdcSum2, Dt*1.e6); // 1945
-								plot(46, qdcSum2, Dt*1.e5); // 1946
-								plot(47, qdcSum2, Dt*1.e4); // 1947
-								plot(48, qdcSum2, Dt*1.e3); // 1948
-								plot(49, qdcSum2, Dt*1.e2); // 1949	
-								/*
-								if(abs(qdcSum - energyCentroid) < energyFWHM) { // a centain group
-									outfile.open((runName + ".scanout").c_str(), 
-												 std::iostream::out | std::iostream::app); 
-									outfile << px2 << "  " 
-											<< py2 << "  " 
-											<< p1d2 << "  " 
-											<< qdcSum2 << "  " 
-											<< Dt << endl;
-									outfile.close(); 
-								}// end:a certain group
-								*/
-							}
-						}// end:!samePixel
-					}
-
-					if(samePixel) {
-						//						if(qdcSum*4 > 3500) {						}// end:E1>3500 keV
-						/*
-						outfile.open("pile-up.out", std::iostream::out | std::iostream::app); 
-						outfile << traceNum++ << "  " 
-								<< qdcSum*4 << "  " 
-								<< qdcSum2*4 << "  " 
-								<< px << "  " << py << "  " 
-								<< (pspmttime - implantRecorder[p1d].GetTime())*Globals::get()->clockInSeconds() << "  "
-								<< implantRecorder[p1d].Is_Implant() << "  "  
-								<< traceDynode.GetValue("filterTime2") - traceDynode.GetValue("filterTime")
-								<< endl;
-						outfile.close(); 
-						*/
-						plot(64, qdcSum, qdcSum2); // 1964
-					} // end:(samePixel)					
-
-				} // end:(similarEnergy && !has_mwpc)
-
-			}
-		} // end:has_pileup
-
-		vecPixel.clear(); 
-				
-		
-	} // end:canProcess
-	
-
 	
 	EndProcess();
 	return(true);
